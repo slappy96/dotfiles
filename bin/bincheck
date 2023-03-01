@@ -1,0 +1,14 @@
+#!/bin/sh
+
+
+#### Written by exitvelocity 05 Dec 2020 ####
+
+#### A simple script to check if a program is present and if not
+#### install it
+
+[ -f /usr/bin/"$1" ] || sudo pacman -S "$1"
+
+##### To use with a script, use below for no confirmation ######
+
+#[ -f /usr/bin/"$1" ] || sudo pacman -S --noconfirm --needed "$1"
+exit 1

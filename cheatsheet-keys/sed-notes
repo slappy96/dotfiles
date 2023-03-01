@@ -1,0 +1,63 @@
+#### SED ####
+sed -E '/^(#|$)/d)' /etc/systemd/system/httpd.service     #-E is enhanced #/ delimits the regular expression #^ means beginning of the line # group (#|$) means #-beginning or $-endofline marker
+#### sed notes ###
+
+## Taken from https://linux.die.net/abs-guide/moreadv.html#EX57
+
+# delete all blank lines
+# -e means and editing command follows
+# ^ is the beginning of a line
+# $ is the end of a line
+# with nothing between ^ and & the 'd' is delete
+sed -e 's/^&/d' $filename
+
+# print only lines containing "slappy" (with -n option)
+# may be useful for commands like df
+sed -n '/slappy/p'
+
+# substitute "Linux" for first instance of "Windows" found in each line
+sed 's/Windows/Linux'
+
+# substitute "Linux" for every instance of "Windows" found in each line
+sed 's/Windows/Linux/g'
+
+# delete all spaces at the end of every line
+sed 's/ *$//'
+
+# delete all lines containing slappy
+sed '/slappy/d'
+
+# delete all instances of slappy, leaving the remainder intact
+sed 's/slappy//g'
+
+## let's try renaming filenames with whitespace ##
+sed -e 's/* */_/g'
+
+## let's try renameing filenames another way ##
+find . -name "* *" -exec sed -e 's/* */_/g' {} \;
+
+## renaming files another way (should work)
+find . -type f -name 'Lucky-*' | while read FILE ; do
+    newfile="$(echo ${FILE} |sed -e 's/old/new/')" ;
+    mv "${FILE}" "${newfile}" ;
+done
+
+## even more useful script for renaming ##
+function renameFilesRecursively () {
+
+  SEARCH_PATH="$1"
+  SEARCH="$2"
+  REPLACE="$3"
+
+  find ${SEARCH_PATH} -type f -name "*${SEARCH}*" | while read FILENAME ; do
+      NEW_FILENAME="$(echo ${FILENAME} | sed -e "s/${SEARCH}/${REPLACE}/g")";
+      mv "${FILENAME}" "${NEW_FILENAME}";
+  done
+
+}
+
+use the above this way:
+renameFilesRecursively /home/slappy/ apple orange
+
+#
+sed -n 5p /etc/passwd  # would print out the fifth line of the /etc/passwd file

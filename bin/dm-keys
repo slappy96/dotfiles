@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# exitvelocity 1 Mar 2022
+# dmenu script to edit config files from a menu
+# name it dmenu-config-edit and bind it to super + e
+
+case "$(printf "vim\nneomutt\nst\ndwm\ncmus" \
+        | dmenu -l 10 -i -c -p "Select Keys Cheatsheet: ")" in
+        vim) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/cheatsheet-keys/vim-keys" > /dev/null 2>&1 ;;
+        neomutt) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/cheatsheet-keys/mutt-keys" > /dev/null 2>&1 ;;
+        st) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/cheatsheet-keys/st-keys" > /dev/null 2>&1 ;;
+        dwm) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/notes-keys/dwm-keys" > /dev/null 2>&1 ;;
+        cmus) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/cheatsheet-keys/cmus-keys" > /dev/null 2>&1 ;;
+
+esac

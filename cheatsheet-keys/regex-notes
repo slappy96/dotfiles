@@ -1,0 +1,22 @@
+#### REGEX NOTES ####
+
+	. - Any one character
+	* - Match any number of previous (including 0)
+	+ - Match any number of previous
+	$ - End of the line
+	^ - Beginning of the line
+	\S - Any non-whitespace character
+	\s - Any whitespace character
+	? - Previous character is optional
+	[a-z] - any lowercase letter
+	[A-Z] - any uppercase letter
+	[A-Za-z] - any letter
+	\ - escape something
+	[0-9] - any number
+
+	## URL regex to get only URL and not other junk
+	grep "https\?://\S*\.[a-z]\+"
+	grep "https\?://\S\+\.\S\+\.[a-z]\+" (my version)
+
+	## URL regex for e-mail address
+	grep "\S\+@\S\+\.[[:alpha:]]"

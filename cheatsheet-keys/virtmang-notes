@@ -1,0 +1,113 @@
+############ VIRT MANAGER AND VIRSH NOTES ###################
+kvm - kernel based virtual machine
+qemu - quick emulator
+libvirt - consistent API across  many virtualization techs
+
+client tools
+-------------------------------------------------------------
+virsh - command-line tools for communicating with libvirt
+virt-manager - gui alternative to manage kvm, qemu, etc.
+virt-install - helper tools for creating new VM guests
+virt-viewer - UI for interacting with VM via VNC/Spice
+
+############ VIRSH -- Changing resolutions ##################
+QEMU defaults to a 16MB Video memory.
+1.  Find correct domain
+$ virsh list --all
+2.  Edit the domain XML
+$ virsh edit --domain <arch-efi>
+3.  Find video line and change vgamem="<65536>
+4.  Get the modeline
+$ cvt 2560 1440  ##cvt?? it works but don't know much
+5.  Tak entire modeline and creat a new one like this:
+$ xrandr --newmode "2560x1440_60.00" ...put rest of modeline
+6.  Add the mode to your screen
+$ xrandr --addmode Virtual-1 2560x1440_60.00
+7.  Use the mode
+xrandr --output Virtual-1 --mode 2560x1440_60.00
+8.  Should be able to add the mode permanently to /etc/X11/xorg.conf.d/
+vim and create the following file: 10-monitor.conf
+section "Monitor"
+    Identifier "Virtual-0 "
+    Modeline "2560x1440_60.00"  312.25  2560 2752 3024 3488  1440 1443 1448 1493 -hsync +vsync
+    Modeline "3840x2160_60.00"  712.75  3840 4160 4576 5312  2160 2163 2168 2237 -hsync +vsync
+    Option "PreferredMode" "2560x1440_60.00"
+EndSection
+
+############ PACKAGES NEEDED ################################
+pacman -Sy --needed \
+qemu \
+dhclient \
+openbsd-netcat \
+virt-viewer \
+libvirt \
+dnsmasq \
+dmidecode \
+ebtables \
+virt-install \
+virt-manager \
+edk2-ovmf \
+bridge-utils
+
+############## PERMISSIONS  ###################################
+The primary tricky bit is getting permissions correct. There are
+a few key pieces to configure so your using can interact with
+qemu:///system. This enables VMs to run as root, which is generally
+what you'll want. This is also the default used by virt-manager.
+Checkout this blog post from Colin Robinson, which calls out the
+differences.
+
+virsh, will use qemu:///session by default, which means CLI calls
+not run as sudo will be looking at a different user. To ensure all
+client utilities default to qemu:///system, add the following
+configuration to your .config directory.
+
+sudo cp -rv /etc/libvirt/libvirt.conf ~/.config/libvirt/ &&\
+sudo chown ${YOURUSER}:${YOURGROUP} ~/.config/libvirt/libvirt.conf
+
+    Replace ${YOURUSER} and ${YOURGROUP} above.
+
+
+
+## Do below to add wheel group explicity to polkit config.
+## you will not be prompted for a password when interacting
+## with virt-manager or virsh
+
+## edit /etc/polkit-l/rules.d/50-libvirt.rules
+
+/* Allow users in wheel group to manage the libvirt
+daemon without authentication */
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.libvirt.unix.manage" &&
+        subject.isInGroup("wheel")) {
+            return polkit.Result.YES;
+    }
+});
+
+################ FILES and IMAGES ####################################
+libvirt keeps its files at: /var/lib/libvirt
+images directory in /var/lib/libvirt/ is the default storage location
+
+################ VM CREATION USING CLI ################################
+virt-install \
+--name ubuntu1804 \
+  --ram 2048 \
+  --disk path=/var/lib/libvirt/images/u19.qcow2,size=8 \
+  --vcpus 2 \
+  --os-type linux \
+  --os-variant generic \
+  --console pty,target_type=serial \
+  --cdrom /var/lib/libvirt/isos/ubuntu-18.04.4-live-server-amd64.iso \
+  --boot uefi  ## only if you want virtual machine to be uefi
+
+## if using the virt-manager gui, you can select uefi on installation
+## by clicking the "Customize configuration before install" on step 5 of 5
+## then select firmware from the overview tab Hypervisor Details section
+
+  CLONING
+  --------------------------------
+  virt-clone \
+  --original ubuntu18.04 \
+  --name cloned-ubuntu \
+  --file /var/lib/libvirt/images/cu.qcow2
+########################################################################

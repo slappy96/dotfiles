@@ -1,0 +1,7 @@
+# Some handy notes for SXIV
+
+# Start SXIV and upon exit, output marked file names to text doc
+sxiv -t -o * | >> file.txt
+
+# Start SXIV and only open files listed in document
+sxiv -t -i < file.txt

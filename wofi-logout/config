@@ -1,0 +1,10 @@
+mode=run
+prompt=logout
+term=alacritty
+allow_images=false
+allow_markup=false
+columns=2
+lines=2
+width=33%
+cache_file=/dev/null
+hide_search=false

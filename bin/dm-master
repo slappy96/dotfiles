@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# The master menu to select sub-programs from
+# Includes: System Maint, Config Edits, Network Access, Suckless Cloning
+
+case "$(printf "System Maintenance\nLocal Network up\nLocal Network \
+      \nConfig Editing\nSuckless Software\nPackage Info" \
+     |dmenu -i -c -l 6 -p "Choose from the following: ")" in
+     "System Maintenance") dm-system-maint ;;
+     "Local Network up") dm-network-up ;;
+     "Local Network down") dm-network-down ;;
+     "Config Editing") dm-config-edit ;;
+     "Suckless Software") dm-suckless ;;
+     "Package Info") dm-packinfo ;;
+esac

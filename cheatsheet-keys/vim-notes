@@ -1,0 +1,22 @@
+#### VIM NOTES ###############################################
+
+# search for a pattern and delete the line
+:g/pattern/d
+# delete whitespace lines or empty lines
+:g/^\s*$/d
+
+
+
+#### VIM SPELL ####
+####################### SPELLCHECK in VIM #####################
+:set spell!  // Highlighted words that are misspelled or have
+//standardization issues.
+]s - moves to first word highlighted and subsequent
+]S - moves to first actual misspelling and not just standardization
+z= - make suggestions to correct
+zg - adds words to the dictionary
+zug - removes words from the dictionary
+## vim has two custom word lists ##
+zg - is the good word list
+zw - adds words to the bad word list # words that you don't like
+zuw - removes words from the bad word list

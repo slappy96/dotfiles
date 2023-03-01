@@ -1,0 +1,16 @@
+
+## ST  ##
+alt j			scroll down
+alt k			scroll up
+alt l			openurlcmd
+alt y			copyurlcmd
+alt o			copyoutput
+shift print		printscreen
+print			printsel
+alt shift j		zoom (out)
+alt shift k		zoom (in)
+alt shift home	zoom reset
+alt shift c		clipcopy
+alt shift v		clippaste
+alt shift Y		selpaste
+alt shift X		invert (colors)

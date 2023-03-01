@@ -1,0 +1,16 @@
+#!/bin/sh
+
+URL="https://git.suckless.org/"
+ST="st"
+DWM="dwm"
+DMENU="dmenu"
+SURF="surf"
+LOC="/home/slappy/.config/source/"
+GC="git clone "
+
+case "$(printf "st\ndwm\ndmenu\nsurf" | dmenu -i -c -l 5 -p "Which suckless software do you want to clone")" in
+        st)cd $LOC && $GC$URL$ST ;;
+        dwm)cd $LOC && $GC$URL$DWM ;;
+        dmenu)cd $LOC && $GC$URL$DMENU ;;
+        surf)cd $LOC && $GC$URL$SURF ;;
+esac

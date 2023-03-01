@@ -1,0 +1,24 @@
+## DWM ##
+mod d			decrease master
+mod i			increase master
+mod n			toggle tags (num/icons)
+mod p			dmenu
+mod return		term
+mod s			steam
+mod v			virt-manager
+mod w			browser
+mod m			scratchpad
+mod e			neomutt
+mod F5			change color (xrdb)
+mod a			toggle gaps
+mod q			kill client
+mod ;			tag right (shiftview)
+mod g			tag left  (shiftview)
+mod b			toggle bar
+mod -			vol down
+mod =			vol up
+mod z			decrease gaps
+mod x			increase gaps
+mod shift a		default gaps
+mod shift space	toggle floating
+mod shift w		nmtui

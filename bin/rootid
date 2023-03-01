@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Ouputs the root window id using xwininfo
+
+xwininfo -root | awk '/Window id:/{print $4}'

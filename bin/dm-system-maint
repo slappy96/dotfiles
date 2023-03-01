@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# /*------------------- Dmenu Pacman Update -------------------------*/
+
+case "$(printf "sync\nfull update\nrefresh keyring\nreflector\nclean pkgcache\nget mail" \
+        | dmenu -i -c -l 10 -p "Select action to perform")" in
+    sync) setsid -f "$TERMINAL" -e sudo pacman -Sy ;;
+    "full update") setsid -f "$TERMINAL" -e sudo pacman -Syu ;;
+    "refresh keyring") setsid -f "$TERMINAL" -e sudo pacman -Sy archlinux-keyring;;
+    reflector) setsid -f "$TERMINAL" -e sudo reflector --latest 6 --country US --sort rate --protocol https --save /etc/pacman.d/mirrorlist ;;
+    "clean pkgcache") setsid -f "$TERMINAL" -e sudo pacman -Sc ;;
+    "get mail") mw -Y ;;
+esac

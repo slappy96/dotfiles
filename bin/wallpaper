@@ -1,0 +1,8 @@
+#!/bin/sh
+
+#### Written by exitvelocity 28 Nov 2020 ####
+
+
+
+xwallpaper --stretch ~/.config/wallpaper/shrike_hornet_1080p.png
+exit 0

@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# Use neovim for vim if present.
+command -v nvim >/dev/null && alias vim="nvim" vimdiff="nvim -d"
+
+# Verbosity and settings that you pretty much just always are going to want.
+alias \
+    bat="cat /sys/class/power_supply/BAT?/capacity" \
+    ff="find ~/.config/* | fzf |xargs -r $EDITOR" \
+    fp="pacman -Q| fzf " \
+	fe="find ~/.config/bin  | fzf |xargs -r -I{} st -e {}" \
+    fpic="find ~/ -type f \( -iname \*.jpg -o -iname \*.jpeg -o -iname \*.png \) | fzf |xargs -r sxiv" \
+    cp="cp -iv" \
+	mv="mv -iv" \
+	rm="rm -v" \
+	mkd="mkdir -pv" \
+	yt="youtube-dl --add-metadata -i" \
+	yta="yt -x -f bestaudio/best" \
+	ffmpeg="ffmpeg -hide_banner" \
+	ll="ls -Al --color=auto" \
+	l="ls -CF --color=auto" \
+	c="clear" \
+	..="cd .." \
+	mutt="neomutt" \
+	df="df -h" \
+    count="ls |wc -l"
+#   cd='function _(){ cd $@ && ls -l; }; _' \
+
+## git aliases ##
+alias \
+        gr="git remote -v" \
+        gru="git remote get-url " \
+        gra="git remote add " \
+        gc="git commit -m " \
+        gb="git branch " \
+        gco="git checkout " \
+        gs="git status" \
+        gl="git log" \
+        glo="git log --oneline" \
+        gd="git diff" \
+        ga="git add" \
+        gp="git pull" \
+        gps="git push"
+
+# Colorize commands when possible.
+alias \
+	grep="grep --color=auto" \
+	diff="diff --color=auto" \
+	ccat="highlight --out-format=ansi"
+
+# These common commands are just too long! Abbreviate them.
+alias \
+	ka="killall" \
+	sdn="sudo shutdown -h now" \
+	sp="sudo pacman" \
+	z="zathura" \
+	cfa="nvim ~/.config/aliasrc" \
+	cfs="nvim ~/.config/sway/config" \
+	cfw="nvim ~/.config/waybar/config" \
+	cfX="nvim ~/.config/x11/Xresources" \
+	cfx="nvim ~/.config/x11/xprofile" \
+	cfz="nvim ~/.config/shell/zprofile" \
+    search='function _(){ ls | grep -i $1; }; _'

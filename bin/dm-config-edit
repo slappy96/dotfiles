@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# exitvelocity 1 Mar 2022
+# dmenu script to edit config files from a menu
+# name it dmenu-config-edit and bind it to super + e
+
+case "$(printf "zprofile\nzshrc\nxinitrc\nxresources\ninit.vim\ngeneral.vim \
+        \nvimkeys.vim\nTheme Color VIM\naliasrc\nnewsboat" | dmenu -l 10 -i -c -p "Select a config to edit")" in
+        zprofile) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/shell/zprofile" > /dev/null 2>&1 ;;
+           zshrc) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/shell/zsh/.zshrc" > /dev/null 2>&1 ;;
+         xinitrc) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/x11/xinitrc" > /dev/null 2>&1 ;;
+      xresources) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/x11/Xresources" > /dev/null 2>&1 ;;
+      "init.vim") setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/nvim/init.vim" > /dev/null 2>&1 ;;
+   "general.vim") setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/nvim/general.vim" > /dev/null 2>&1 ;;
+   "vimkeys.vim") setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/nvim/vimkeys.vim" > /dev/null 2>&1 ;;
+"Theme Color VIM") setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/nvim/theme_color.vim" > /dev/null 2>&1 ;;
+         aliasrc) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/aliasrc" > /dev/null 2>&1 ;;
+        newsboat) setsid -f "$TERMINAL" -e "$EDITOR" "$HOME/.config/newsboat/urls" > /dev/null 2>&1 ;;
+
+esac

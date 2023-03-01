@@ -1,0 +1,22 @@
+## CMUS ##
+space	open/close selected (1 view)
+p	move down in playlist
+P	move up in playlist
+D	delete from playlist
+e	add (append) to play queue (4 view)
+E	add (prepend) to play queue
+a	add music to library (best from view 5)
+c	pause music
+y	add to marked playlist
+r	repeat
+m	toggle three modes (all|artist|album)
+s	toggle shuffle (bottom right indicated)
+z	previous track
+b	next track
+/	search (best from library view - 2)
+q	quit
+PLAYLISTS
+pl-create name-of-playlist
+pl-rename name-of-playlist
+pl-export filename
+pl-import filename

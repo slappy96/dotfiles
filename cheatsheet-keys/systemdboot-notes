@@ -1,0 +1,20 @@
+#### SYSTEMD BOOT EXAMPLE CONFIG FILES ####
+
+### arch.conf ###
+title Archlinux
+linux /vmlinuz-linux
+initrd /intel-ucode.img
+initrd /initramfs-linux.img
+options root=PARTUUID=38556659-725f-ed46-b800-07ca7d834d84 rw
+
+### arch-lts.conf ###
+title Arch-LTS
+linux /vmlinuz-linux-lts
+initrd /intel-ucode.img
+initrd /initramfs-linux-lts.img
+
+### loader.conf ###
+options root=PARTUUID=38556659-725f-ed46-b800-07ca7d834d84 rw
+default arch
+arch-lts
+timeout 4

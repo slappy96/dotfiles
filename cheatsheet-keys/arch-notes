@@ -1,0 +1,5800 @@
+****** MASTER NOTES *******
+
+
+### Create an arch mirrorlist from the command line ###
+curl -o ~/mirrorlist https://www.archlinux.org/mirrorlist/all/
+sed -i 's/#Server/Server/g' ~/mirrorlist #this will remove hash marks
+rankmirrors ~/mirrorlist > ~/mirrorlist.fast
+sudo mv -v ~/mirrorlist.fast /etc/pacman.d/mirrorlist
+sudo pacman -Syy  #update the pacman repo cache
+
+
+### UNITED STATES HTTPS ONLY BELOW ###
+curl -o ~/mirrorlist \
+https://www.archlinux.org/mirrorlist/?country=US&protocol=https&ip_version=4
+sed -i 's/#Server/Server/g' ~/mirrorlist #this will remove hash marks
+rankmirrors ~/mirrorlist > ~/mirrorlist.fast
+sudo mv -v ~/mirrorlist.fast /etc/pacman.d/mirrorlist
+sudo pacman -Syy  #update the pacman repo cache
+# Cover basics of how to patch DWM (git version)
+
+#### This section is using git branches for edits to config.def.h ####
+1. git clone https://git.suckless.org/dwm
+2. make config branch-- $git branch config
+  ## If you need to delete branch -- $git branch -D config
+3. $git checkout config
+4. verify you are in branch by $git branch
+5. now edit some file like config.def.h
+6. once complete, add for commit $git add config.def.h
+7. $git commit -m "changed something"
+8. switch back to master $git checkout master
+9. merge config branch to master branch $git merge config -m config
+10.make && sudo make clean install
+
+#### This section is specifically adding patches with git ####
+1. download patch
+2. clean everything up $make clean && rm -f config.h && git reset --hard origin/master
+3. $git branch pertag
+4. $git checkout pertag
+5. $git apply ~/dl/dwm-pertag...(This part is just location of patch)
+6. view patch with vim to see which files were modified to add them to commit
+7. $git add dwm.c #in this patch, only dwm.c was modified
+8. $git commit -m pertag
+9. $git checkout master
+10.$git merge config -m config
+11.$git merge pertag -m pertag
+12.$make && sudo make clean install
+
+
+#### FFMPEG ####
+1. Get media file information
+The first use of ffmpeg is displaying information about a media file. This can be done by not entering any output files. Simply type:
+
+ffmpeg -i file_name
+This works for both audio and video files:
+
+ffmpeg -i video_file.mp4
+ffmpeg -i audio_file.mp3
+Display information about a media file with ffmpeg
+Display information about a media file with ffmpeg
+Although useful, this command will display way too much information that isn’t relevant to your file (information about ffmpeg). To omit that, add the -hide_banner flag:
+
+ffmpeg -i video_file.mp4 -hide_banner
+ffmpeg -i audio_file.mp3 -hide_banner
+Display relevant information about a media file with ffmpeg.
+Display info of a media file using ffmpeg
+As you can see, the command now outputs only details concerning the media file you specified (encoder, streams etc.).
+
+2. Convert Media Files
+Another very useful way to use ffmpeg is for hassle-free conversion between different media formats. You only have to specify input and output files, since ffmpeg will get the required format from the file extensions. This works for video-to-video and audio-to-audio conversions.
+
+Here are some examples:
+
+ffmpeg -i video_input.mp4 video_output.avi
+ffmpeg -i video_input.webm video_output.flv
+ffmpeg -i audio_input.mp3 audio_output.ogg
+ffmpeg -i audio_input.wav audio_output.flac
+You can even specify more output files:
+
+ffmpeg -i audio_input.wav audio_output_1.mp3 audio_output_2.ogg
+This will convert the input files to all specified formats.
+
+To see a list of all supported formats, use:
+
+ffmpeg -formats
+Again, you can add -hide_banner to omit information about the app.
+
+You can specify the -qscale 0 parameter before the output file to preserve the quality of a video file:
+
+ffmpeg -i video_input.wav -qscale 0 video_output.mp4
+Additionally, you could specify codecs you want to use, adding -c:a (for audio) and -c:v (for video) followed by the name of the codecs, or copy if you want to use the same codecs as the original file:
+
+ffmpeg -i video_input.mp4 -c:v copy -c:a libvorbis video_output.avi
+Note: this might make the file extension rather deceiving, so be careful.
+
+3. Extract Audio from Video
+To extract audio from a video file, you do a simple conversion and add the -vn flag:
+
+ffmpeg -i video.mp4 -vn audio.mp3
+Note that this command will utilize the bit rate of the original file. It’s a good idea to set it yourself; you can use -ab (audio bit rate):
+
+ffmpeg -i video.mp4 -vn -ab 128k audio.mp3
+Some common bit rates are 96k, 128k, 192k, 256k, 320k (highest bitrate supported by mp3).
+
+Other common options are -ar (audio frequency: 22050, 441000, 48000), -ac (number of audio channels), -f (audio format, although normally automatically detected). -ab can also be replaced by -b:a. For example:
+
+ffmpeg -i video.mov -vn -ar 44100 -ac 2 -b:a 128k -f mp3 audio.mp3
+4. Mute Audio in Video
+Similar to the last task, to accomplish this we’ll add a simple tag: -an (instead of -vn).
+
+ffmpeg -i video_input.mp4 -an -video_output.mp4
+Note: The -an tag will render all audio options for that output file useless, since there will be no audio in the result of the operation.
+
+5. Extract Images from Video
+This might come in handy for a lot of people. For example, you might have a series of images (e.g. a slideshow) and you want to get all images out of that. Simply enter:
+
+ffmpeg -i video.mp4 -r 1 -f image2 image-%3d.png
+Let’s take that apart for a second.
+
+-r specifies the frame rate (how many frames are extracted into images in one second, default: 25), -f specifies the output format (image2 actually stands for image2 sequence.
+
+The last parameter (the output file) has a somewhat interesting naming: it uses %3d at the end. This simply numbers your images with 3 digits (000, 001, etc.). You can also use %2d (2 digit format) or even %4d (4 digit format) if you want. Feel free to experiment and use whatever works for you!
+
+Note: There is also a way to turn a set of images into a video/slideshow. I’ll cover that in the Advanced Usage section.
+
+6. Change Video Resolution or Aspect Ratio
+Another simple task for ffmpeg. All you have to do to resize a video is specify a new resolution after the -s flag:
+
+ffmpeg -i video_input.mov -s 1024x576 video_output.mp4
+Additionally, you might want to specify -c:a to make sure the audio codecs of the output file is the right one:
+
+ffmpeg -i video_input.h264 -s 640x480 -c:a video_output.mov
+You can also change the aspect ratio using -aspect:
+
+ffmpeg -i video_input.mp4 -aspect 4:3 video_output.mp4
+Note: Once again, another slightly more powerful method will be mentioned in the Advanced Usage section.
+
+7. Add Poster Image to Audio
+This is a great way to turn audio into video, using a single photo (such as a album cover) for the audio. This is a very useful feature when you want to upload audio files to sites that don’t allow anything other than video/images (YouTube and Facebook are two examples of such sites).
+
+Suggested read  How to Create a Bootable Windows 10 USB in Linux
+Here is an example:
+
+ffmpeg -loop 1 -i image.jpg -i audio.wav -c:v libx264 -c:a aac -strict experimental -b:a 192k -shortest output.mp4
+Just change the codecs (-c:v specifies video codecs, -c:a specifies audio codecs) and the names of your files.
+
+Note: You don’t have to use -strict experimental if you are using a newer version (4.x).
+
+8. Add Subtitles to Video
+Equally as useful and as simple to do with ffmpeg is to add subtitles to a video (for example a movie). Enter the following:
+
+ffmpeg -i video.mp4 -i subtitles.srt -c:v copy -c:a copy -preset veryfast -c:s mov_text -map 0 -map 1 output.mp4
+Of course, you can specify any codecs that you want (and any other additional options related to audio/video). You can read this article about editing subtitles in Linux, graphically.
+
+9. Compress Media Files
+Compressing files greatly reduces file size, saving you a lot of space. This can be important for transferring files. With ffmpeg, there are multiple methods to reduce file size.
+
+Note: Compressing files too much will noticeably reduce the quality of the resulting file.
+
+First of all, for audio files, simply reduce the bit rate (using -b:a or -ab):
+
+ffmpeg -i audio_input.mp3 -ab 128k audio_output.mp3
+ffmpeg -i audio_input.mp3 -b:a 192k audio_output.mp3
+Again, some different bit rate values are: 96k, 112k, 128k, 160k, 192k, 256k, 320k. The higher the bit rate, the higher the file size and the quality.
+
+For video files, you have more options. One way would be to reduce the video bit rate (using -b:v):
+
+ffmpeg -i video_input.mp4 -b:v 1000k -bufsize 1000k video_output.mp4
+Note: Video bit rates are different from audio bit rates (much higher values).
+
+You could set the -crf flag (Constant Rate Factor). A lower crf means a higher bit rate. Also, using libx264 as video codec helps. Here’s a very efficient size reduction with very small reduction in quality:
+
+ffmpeg -i video_input.mp4 -c:v libx264 -crf 28 video_output.mp4
+A crf of 20 to 30 is common, but feel free to play around with the specific value.
+
+Reducing the frame rate might work in some cases (although it might very easily make the video feel sluggish):
+
+ffmpeg -i video_input.mp4 -r 24 video_output.mp4
+-r specifies the frame rate (in this case 24).
+
+You could also try reducing the size of the video (already explained how do to that). An additional tip is to compress the audio too, making it stereo and reducing the bit rate. For example:
+
+ffmpeg -i video_input.mp4 -c:v libx264 -ac 2 -c:a aac -strict -2 -b:a 128k -crf 28 video_output.mp4
+Note: -strict -2 and -ac 2 take care of the stereo part. I already covered the part that reduces the bit rate.
+
+10. Cut Media Files (Basic)
+To trim files from the beginning you have to specify a duration using -t:
+
+ffmpeg -i input_video.mp4 -t 5 output_video.mp4
+ffmpeg -i input_audio.wav -t 00:00:05 output_audio.wav
+As you can see, this works for both video and audio files. Both of the commands above do the same thing: save the first 5 seconds of the input file to the output file. I have used to different ways of inputting the duration: a single number (number of seconds) and HH:MM:SS (hours, minutes, seconds). The second version acts more like an end time.
+
+You can go even further by specifying a start time with -ss, and even an end time with -to:
+
+ffmpeg -i input_audio.mp3 -ss 00:01:14 output_audio.mp3
+ffmpeg -i input_audio.wav -ss 00:00:30 -t 10 output_audio.wav
+ffmpeg -i input_video.h264 -ss 00:01:30 -to 00:01:40 output_video.h264
+ffmpeg -i input_audio.ogg -ss 5 output_audio.ogg
+You can see start time (-ss HH:MM:SS), duration (-t duration) in seconds, end time (-to HH:MM:SS), and start time (-s duration) in seconds (starting after duration seconds).
+
+All these are valid commands and you can work with any part of a media file using them.
+
+How to use ffmpeg: Advanced Usage
+I’ll now cover slightly more advanced features (such as screen casting, using devices etc.). Let’s get right to the first point!
+
+1. Split Media Files
+I already covered trimming files. What you have to do to split a file into multiple parts is to specify multiple trims (specifying start times, end times or duration before each output files).
+
+Observe this example:
+
+ffmpeg -i video.mp4 -t 00:00:30 video_1.mp4 -ss 00:00:30 video_2.mp4
+The syntax is quite simple. I specified -t 00:00:30 as duration for the first part (the first part will consist of the first 30 seconds of the original video). Next, I specified that I’d like the rest to be part of a second video (starting from the end of the last part, 00:00:30).
+
+This can be done for as many parts as you want! Have fun playing with this feature, since it is very powerful. Keep in mind that it works with audio too.
+
+2. Concatenate Media Files
+ffmpeg can also do the opposite process: putting multiple parts together.
+
+To do so, you’ll have to create a new text file and start editing it using your preferred editor.
+
+Since I like using the terminal, I’ll use touch and vim. It doesn’t matter what you call this file. I’ll call mine join.txt and create the file using touch:
+
+touch videos_to_join.txt
+Now, I’ll edit it using vim:
+
+vim videos_to_join.txt
+You can use whatever tools you want (nano, gedit, etc.), this is just what it’s the easiest for me to use.
+
+Here, enter the full paths to all the files you wish to join (they will be joined in the order you write them here), one per line. Make sure they have the same extension (e.g. mp4). Here’s mine:
+
+/home/ubuntu/Desktop/video_1.mp4
+/home/ubuntu/Desktop/video_2.mp4
+/home/ubuntu/Desktop/video_3.mp4
+Save the file you just edited. This method works for any audio or video files.
+
+Now enter the following:
+
+ffmpeg -f concat -i join.txt output.mp4
+Note: My output file is output.mp4, but that’s because all my input files have the mp4 extension.
+
+This should join all the files you wrote down in join.txt (or however you named that file) into one single output file.
+
+3. Join Images into a Video
+This is how you can put together a slideshow or anything similar. I’ll show you how to add audio too.
+
+The first thing I recommend doing is making sure the photos you want to put together are located in the same directory. I’ll put mine in a directory called my_photos. The extensions recommended for the pictures are .png and .jpg. Whichever you choose, make sure all images have the same extension (otherwise, using ffmpeg might have unintended effects). You could simply convert the .png files to .jpg or vice-versa (see Basic Usage).
+
+The format (-f) of our conversion should be image2pipe. For the input, you’ll have to provide a hyphen (–). What image2pipe allows you to do is pipe (using | in the terminal)the results of a command such as cat into ffmpeg instead of inputting all names one by one. That’s exactly what I’ll do. For this to work, we’ll also have to mention that we want the video codecs to be copied (-c:v copy) (to properly use the images):
+
+cat my_photos/* | ffmpeg -f image2pipe -i - -c:v copy video.mkv
+If you play this file, you might think only some pictures were added to the slideshow. Actually, all of your pictures have been added, but ffmpeg cycles through them as fast as possible. This means 1 frame per photo; ffmpeg (by default) runs at around 23 fps.
+
+To change that, you’ll have to specify the frame rate (-framerate) you want:
+
+cat my_photos/* | ffmpeg -framerate 1 -f image2pipe -i - -c:v copy video.mkv
+In my example, I set the frame rate to 1, that means that each frame (that also means each images) appears for 1 second.
+
+To add audio, such as a background song, we’ll have to specify the audio file as input file (-i audo_file) and copy the audio codecs (-c:a copy). For the codecs, you could copy both audio and video codecs at the same time with -c copy. Make sure you set the codecs right before specifying the output file. You could also set the frame rate so that all of your pictures synchronize with the duration of the audio you want to use. To get that, divide the number of pictures by the duration of the audio (in seconds). For my example, I have a 22 seconds long audio file and 9 images. 9 / 22 is approximately 0.40, so that’s what I’ll use for my frame rate:
+
+cat my_photos/* | ffmpeg -framerate 0.40 -f image2pipe -i - -i audio.wav -c copy video.mkv
+
+=====================================================================================================================================================================
+4. Record Your Screen
+Screencasting with ffmpeg is not a hard job. The format (-f) you need to use is x11grab. This will capture your XSERVER. As input you’ll have to specify your screen display number (main screen should normally be 0:0). However, this will only capture a top-left portion of the screen. You should add a screen size (-s). Mine is 1920×1080. The screen size should be mentioned before the input:
+
+ffmpeg -f x11grab -s 1920x1080 -i :0.0 output.mp4
+Press q or CTRL+C at any time to stop the screencast.
+
+Suggested read  Ubuntu 18.04 Will Get 10-Year Support (Instead of the Usual 5 Years)
+Bonus trick: You can make the size of the output file fullscreen with inputting this after for the size (instead of 1920×1080 or any other set resolution):
+
+-s $(xdpyinfo | grep dimensions | awk '{print $2;}')
+Here’s the full command:
+
+ffmpeg -f x11grab -s $(xdpyinfo | grep dimensions | awk '{print $2;}') -i :0.0 output.mp4
+=====================================================================================================================================================================
+
+5. Record Your Webcam
+Recording input from your webcam (or another device, such an usb camera) is even easier. In Linux, devices are stores in /dev as /dev/video0, /dev/video1, etc.:
+
+ffmpeg -i /dev/video0 output.mkv
+Again, q or CTRL+C to stop recording.
+
+6. Record Your Audio
+Linux handles audio mainly through ALSA and pulseaudio. ffmpeg can record both, but I’ll cover pulseaudio, since Debian-based distributions include it by default. The syntax is a little different for the two methods.
+
+For pulseaudio, you have to force (-f) alsa and specify default as input (-i default):
+
+ffmpeg -f alsa -i default output.mp3
+Note: In your distribution sound settings, make sure the default recording device is the one you want to record.
+
+I play guitar quite a lot and I have an audio interface so I can record it. I had a pleasant surprise when ffmpeg recorded my guitar with no problems.
+
+Bonus Tips on Recording
+For any type of recording you can also specify codecs, of course (already covered). You can choose a specific frame rate (-r). You can combine recording audio with webcam/screen recording too!
+
+ffmpeg -i /dev/video0 -f alsa -i default -c:v libx264 -c:a flac -r 30 output.mkv
+Instead of recording audio, you can just as easily add an audio file as input to be recorded on top of your screencast/webcam:
+
+ffmpeg -f x11grab -s $(xdpyinfo | grep dimensions | awk '{print $2;}') -i :0.0 -i audio.wav -c:a copy output.mp4
+Note: ffmpeg records in small pieces, so a really small recording might not get saved. I recommend recording just a little longer and cutting it afterwards (if you only want a few seconds), just to make sure the file will actually be written to your disk.
+
+Basic usage of Filters in ffmpeg
+Filters are an incredibly powerful feature of ffmpeg. There is a crazy amount of filters available for you to use, making ffmpeg completely capable of handling any editing needs. Since there are so many filters and this article is already comprehensive, I’ll only cover some simple filters.
+
+The basic structure for using a filter is:
+
+ffmpeg -i input.mp4 -vf "filter=setting_1=value_1:setting_2=value_2,etc" output.mp4
+ffmpeg -i input.wav -af "filter=setting_1=value_1:setting_2=value_2,etc" output.wav
+As you can see, I am specifying video filters (-vf, short for -filter:v) and audio filters (-af, short for -filter:a). The actual filters are written inside double quotes (“) and can be chained by separating them with commas (,). You can specify as many filters as you want (I’ve written etc to note additional filters, it isn’t actually part of the command).
+
+The general form of a filter is:
+
+filter=setting_2=value_2:setting_2=value_2
+The different filter settings and their values are separated by colons.
+
+You can also execute mathematical operations as values for the different settings.
+
+Note: More detailed coverage of different constants to be used in expressions and different settings can be found in the official ffmpeg filter documentation.
+
+I’ll cover both video and audio filters. Let’s see some examples!
+
+1. Video Scaling
+This is a very simple filter. The only settings are width and height:
+
+ffmpeg -i input.mp4 -vf "scale=w=800:h=600" output.mp4
+I mentioned that you can use mathematical operations for values too:
+
+ffmpeg -i input.mkv -vf "scale=w=1/2*in_w:h=1/2*in_h" output.mkv
+This command sets the output size to half (1/2) of the input size (in_w, in_h).
+
+2. Video Cropping
+As for the scaling filter, the settings are the width and height of the resulting file. Optionally, you can specify coordinates for the top-left corner of the cut (default: center of the input video):
+
+ffmpeg -i input.mp4 -vf "crop=w=1280:h=720:x=0:y=0" output.mp4
+ffmpeg -i input.mkv -vf "crop=w=400:h=400" output.mkv
+As noted, the second cut will cut in the center of the input file (since I haven’t specified x and y coordinates for the top-left corner). The first command will cut from the top-left corner (x=0:y=0).
+
+Here is an example that uses mathematical expressions as values:
+
+ffmpeg -i input.mkv -vf "crop=w=3/4*in_w:h=3/4*in_h" output.mkv
+This command sets the output size to 3/4 of the input size (in_w, in_h).
+
+3. Video Rotation
+You can also rotate a video clockwise by a value (in radians). To make things easier, you can specify a value in degrees and convert it to radians by multiplying that value with PI/180:
+
+ffmpeg -i input.avi -vf "rotate=90*PI/180"
+ffmpeg -i input.mp4 -vf "rotate=PI"
+The first command will rotate the video clockwise 90 degrees. The second command will turn the video upside-down (PI rad = 180 degrees).
+
+4. Audio Channel Remapping
+This can be helpful if you somehow only get audio in the right ear or anything similar. You can make the audio audible from both ears (in this particular case) like this:
+
+ffmpeg -i input.mp3 -af "channelmap=1-0|1-1" output.mp3
+This maps the right (1) audio channel to both the left () and the right (1) audio channel. (the left number represents input, the right number represents output).
+
+5. Audio Volume Multiplying
+You can multiply the audio volume by any real number (integer or not). You only need to specify the multiplier:
+
+ffmpeg -i input.wav -af "volume=1.5" output.wav
+ffmpeg -i input.ogg -af "volume=0.75" output.ogg
+The first command amplifies the volume 1.5 times. The second command makes the audio 1/4 (0.25) times quieter.
+
+Bonus Tip: Playback Speed Adjustments
+I’ll include both the video (doesn’t affect audio) and audio filters for this task.
+
+1. Video
+
+The filter for video is setpts (PTS = presentation time stamp). This works in a somewhat interesting manner. Since we actually modify the PTS, a bigger coefficient means a slower result and vice-versa:
+
+ffmpeg -i input.mkv -vf "setpts=0.5*PTS" output.mkv
+ffmpeg -i input.mp4 -vf "setpts=2*PTS" output,mp4
+As I just explained, the first command doubles the playback speed and the second command slows the video to 1/2 of the speed.A
+
+2. Audio
+
+The filter for this is atempo. There’s one little caveat: it can only take values between 0.5 (half the speed) and 2 (double the speed). To get around that, you can chain atempo filters:
+
+ffmpeg -i input.wav -af "atempo=0.75" output.wav
+ffmpeg -i input.mp3 -af "atempo=2.0,atempo=2.0" ouutput.mp3
+The first command slows the audio by 1/4 of the original speed. The second command speeds up the audio 4 times (2*2).
+
+Note: For changing video and audio playback speed with the same command you’ll have to look into filtergraphs.
+
+##################### IWCTL (wifi configuration in Arch) #####################################
+iwctl -- new Arch wireless control
+
+iwctl - to get an interactive prompt w/ tab completion
+exit interactive prompt with ctrl+d
+[iwd]# help (list available commands)
+[iwd]# device list (to list all Wi-Fi devices)
+[iwd]# station <device> scan (to scan for networks)
+[iwd]# station <device> get-networks (to list available networks)
+[iwd]# station <device> connect <SSID> (to connect to network)
+[iwd]# station <device> disconnect (to disconnect from a network)
+[iwd]# device <device> show (to display details of a Wifi device)
+[iwd]# station <device> show (to display connection state)
+[iwd]# known-networks <SSID> forget (to forget a known network)
+
+you can pass all commands as command line arguments
+$iwctl device wlan0 show (from a normal command prompt or)
+[iwd]# device wlan0 show
+
+To disable auto-connect for a particular network
+create/edit file /var/lib/iwd/network.type
+add the following section to it:
+[Settings]
+AutoConnect=false
+
+
+
+######################### ARCH LINUX INSTALLATION GUIDE ##########################
+
+#If UEFI is enabled, should have this directory
+ls /sys/firmware/efi/efivars
+ip link
+#The installation image enables dhcpcd (wired)
+ping google.com
+#ensure system clock is accurate
+timedatectl set-ntp true
+#partition disks (fdisk -l to see drive)
+fdisk or cfdisk
+#UEFI make 3 partitions:
+#/dev/sdX1 512MB mount point /mnt/boot or /mnt/efi (EFI system parition)
+#/dev/sdX2 mount point /mnt (remainder of space - root partition)
+#/dev/sdX2 SWAP
+#MBR/BIOS Boot 2 partitions
+#/dev/sdX1 mount point /mnt (remainder of space - root partition)
+#/dev/sdX2 SWAP
+mkfs.ext4 /dev/sdX(1) - wherever root partition is
+#if swap created
+mkswap /dev/sdX2
+swapon /dev/sdX2
+#mount root file system
+mount /dev/sdX1 /mnt
+#if UEFI was used
+mount /dev/sdX1 /mnt/boot or /mnt/efi
+#select mirrors in /etc/pacman.d/mirrorlist
+
+#install essential packages
+
+pacstrap /mnt base linux linux-firmware dhcp dhcpcd intel-ucode sudo vim
+man-db man-pages grub networkmanager
+
+genfstab -U /mnt >> /mnt/etc/fstab
+#check resulting fstab for errors
+arch-chroot /mnt
+ln -sf /usr/share/zoneinfo/US/Chicago /etc/localtime
+hwclock --systohc
+#in /etc/locale.gen, uncomment en_US.UTF-8 UTF-8
+locale-gen
+#create the locale.conf and set the LANG variable accordingly
+/etc/locale.conf
+LANG=en_US.UTF-8
+#create the hostname file
+/etc/hostname (exitvelocity)
+#add matching entries to hosts
+/etc/hosts
+127.0.0.1    localhost
+::1          localhost
+127.0.1.1    exitvelocity.localdomain  exitvelocity
+#create a new initramfs
+mkinitcpio -P
+#set the root password
+passwd
+useradd -m -G wheel -s /bin/bash slappy
+passwd slappy
+visudo (uncomment two wheel groups)
+#install microcode amd-ucode or intel-ucode package
+pacman -S intel-ucode
+#grub installation for MBR/BIOS
+grub-install --target=i386-pc /dev/sdX  #not partition number, just drive
+########################################################################
+grub installation for EFI
+grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=GRUB
+#########################################################################
+grub-mkconfig -o /boot/grub/grub.cfg
+systemctl enable dhcpcd.service
+#exit chroot by typing exit
+exit
+umount -R /mnt
+reboot
+
+
+## Arch Install
+Arch ISO - download the arch ISO and either add it to a thumbdrive (if you are doing a normal install) or use it in virtualbox
+1. ping archlinux.org  #see if you have good network connection
+2. if you are on wireless, wifi-menu to set up
+3. timedatectl set-ntp true
+4. fdisk -l  # to identify name of disk
+5. fdisk /dev/sda (this may vary but assuming sda is the disk)
+	-select new partition
+	-use defaults unless you want a specific size
+	-set bootable flag (a)
+	-create swap partition (if desired)
+6. mkfs.ext4 /dev/sda1  (format the partition with filesystem)
+7. mkswap /dev/sda2 (if you made a swap)
+8. swapon /dev/sda2
+9.  mount /dev/sda1 /mnt   (to mount the file system temporarily on /mnt)
+10. pacstrap /mnt base linux linux-firmware grub networkmanager vim
+11. genfstab -U /mnt >> /mnt/etc/fstab
+12. arch-chroot /mnt  (this moves you over to the install on /mnt temporarily)
+13. ln -sf /usr/share/zoneinfo/US/Chicago /etc/localtime
+14. hwclock --systohc
+15. edit /etc/locale.gen and uncomment en_US.UTF-8 UTF-8  (I use vim but you can use nano)
+16. locale-gen
+17. create /etc/locale.conf and add LANG=en_US.UTF-8
+18. create the hostname file /etc/hostname and put your desired hostname in it (anything you want it to be)
+19. edit /etc/hosts with the three lines below and change myhostname to whatever you used in step 18
+	127.0.0.1	localhost
+	::1		localhost
+	127.0.1.1	myhostname.localdomain  myhostname
+20. passwd (set the root password - confirm twice)
+21. install grub bootloader
+	grub-install --target=i386-pc /dev/sda
+22. generate grub config
+	grub-mkconfig -o /boot/grub/grub.cfg
+23. systemctl enable NetworkManager
+24. exit the chroot environment by typing
+	exit
+25. type reboot
+26. congrats
+
+## Exvel Install
+1. logged in as root on your arch install do the following:
+	curl -LO https://raw.githubusercontent.com/slappy96/exlaunch/master/exlaunch.sh
+2. make it executable
+	chmod +x exlaunch.sh
+3. execute the script
+	./exlaunch.sh
+4. It will walk you through install and its quick.  Make sure you select DWM as the window manager
+
+
+#### KERNEL BUILD GUIDE ####
+wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.20.tar.sign
+
+unxz linux...
+gpg2 --verify linux-X.XX.XX.tar.sign linux-X.XX.XX.tar
+
+tar -xvf linux-X.XX.XX
+cd linux-X.XX.XX
+make mrproper
+zcat /proc/config.gz > .config
+## Warning -- above command uses current kernel so do not forget to rename in CONFIG_LOCALVERSION in .config ##
+vim .config
+make xconfig
+make -j5
+su -
+##### root required below ####
+make modules_install
+## This will copy the compiled modules into /lib/modules/<kernel version>
+cp -v arch/x86_64/boot/bzImage /boot/vmlinuz-linuxXX
+cp /etc/mkinitcpio.d/linux.preset /etc/mkinitcpio.d/linuxXX.preset
+vim /etc/mkinitcpio.d/linuxXX.preset
+    ALL_kver="/boot/vmlinuz-linuxXX"
+    default_image="/boot/initramfs-linuxXX.img"
+    fallback_image"/boot/initramfs-linuxXX-fallback.img"
+mkinitcpio -p linuxXX
+cd /boot/loader/entries
+vim archXX.conf
+vim loader.conf
+
+## Removing a custom kernel with systemd boot.  If using grub, will have to
+## remove from bootloader and re-run grub-mkconfig
+
+
+#### KERNEL REMOVE GUIDE ####
+
+## 1 ## /lib/modules/(kernel_name) and remove
+## 2 ## /boot
+	-remove (initramfs-linux(XX)-fallback.img
+	-remove (initramfs-linux(XX)-.img
+	-remove vmlinuz-linux(XX)
+## 3 ## /boot/loader
+	-edit loader.conf and remove entry
+	-go into /boot/loader/entries/ remove the specific .conf
+	 or rename it to .old for later use
+
+################# EMAIL SERVER INSTALL GUIDE ########################
+
+## Easy way is Luke Smith script ##
+
+-  Go to Epik and add an Email Record (mx record)
+   Priority - 0
+   Host - (leave blank)
+   Points to - mail.munosxyz.  ## Don't forget trailing dot (Epik)
+   TTL - whatever (300)
+
+-  Make 3 cname entries to set up subdomain (really so certbot works)
+   Host Box - www		Points to munos.xyz.
+   Host Box - mail		Points to munos.xyz.
+   Host Box - www.mail		Points to munos.xyz.
+
+-  ssh root@mainserver then:
+-  vim /etc/nginx/sites-available/mail (if the file mail isn't there, create it
+   ## copy over default file in sites-available and adjust:
+   root /var/www/mail; ## this is really only for certbot to get OpenDKIM to work
+-  ln -s /etc/nginx/sites-available/mail /etc/nginx/sites-enabled/
+-  systemctl reload nginx
+-  certbot --nginx
+	select mail.munos.xyz and www.mail.munos.xyz
+	select redirect
+-  test proper error by going to mail.munos.xyz in browser - should get 404 error (nginx)
+-  curl -LO lukesmith.xyz/emailwiz.sh
+-  sh emailwiz.sh ## Will install:
+	postfix - to send mail
+	dovecot - to receive mail
+	spamassassin - obvious reasons
+	OpenDKIM - validates domain and e-mail as legitimate for large companys
+   ncurses interface
+   	-Postfix Configuration - select Internet Site
+	-System mail name: munos.xyz (just base domain name)
+
+   ## 3 text records you must add on domain registrar (Epik)
+   	- They are saved to the dns_emailwizard file in Luke's emailwiz script
+	1. DKIM
+		-Host box mail_domainkey
+		-Txt box v=[to the end of the string]
+	2. dmarc
+		-Host box _dmarc.munos.xyz
+		-Txt box v=[to the end of the line]
+	3. @
+		-Host box @
+		-Txt box v=[to the end of the lin]
+  ## to add a mail user on server
+  - useradd -m -G mail -s /bin/bash jason
+  ## give a password with:
+  - passwd
+
+  SMTP is mail.munos.xyz
+  SMTP port is 587
+  IMAP is mail.munos.xyz
+  IMAP port is 993
+  user name is just name like jason
+
+## RENEWAL OF CERTIFICATES ##
+
+## This will allow you to look at the actual cert -- look for VALIDITY
+## section and "not after"
+openssl x509 -in /etc/letsencrypt/live/domain_name1/cert.pem -text -noout
+
+
+
+
+
+
+
+
+#### SSH NOTES ####
+
+
+## Generate ssh keys - will generate two (id_rsa and id_rsa.pub) unless specified
+ssh-keygen
+
+## General ssh format is
+ssh user@host (host can be IP or domain name)
+
+## Secure copy via SSH. Note I specified port 1803 with capital P
+scp -P 1803 somefile user@archbox:/home/slappy
+
+## Remove a cached key on a local machine/client
+## This happens if known_hosts has ever connected to same domain name
+## with a different address. Warning that shows is:
+## "Warning: the ECDSA host key for 'myserver' differs from the key for the
+## IP address '192.168.2.3'"
+
+ssh-keygen -R 88.36.654.23 (or replace the IP with domain name munos.xyz)
+ssh-copy-id
+
+
+
+
+
+# This sets the delay for repeat and repeat speed for the keyboard
+# Delay number is given first in milliseconds and rate is give second
+# as the number of repeats per second
+#
+#
+$xset r rate 300 50 /*Good and pretty fast*/
+$xset r rate 250 50 /*A more conservative setting*/
+##########  ALSA NOTES  ############
+
+# Saving sound profile to survive reboot
+sudo alsactl store #saves config in /var/lib/alsa/asound.state
+
+
+
+#### CMUS NOTES ####
+
+### cmus control reference ###
+
+MAIN LAYOUT
+===============================================
+1	album/artist -- tree view
+2	sorted library
+3 	playlist
+4	queue
+5	browse
+6	filters
+7	settings/bindings
+
+CONTROLS
+================================================
+space	open/close selected (1 view)
+p	move down in playlist
+P	move up in playlist
+D	delete from playlist
+e	add (append) to play queue (4 view)
+E	add (prepend) to play queue
+a	add music to library (best from view 5)
+c	pause music
+y	add to marked playlist
+r	repeat
+m	toggle three modes (all|artist|:walbum)
+s	toggle shuffle (bottom right indicated)
+z	previous track
+b	next track
+/	search (best from library view - 2)
+q	quit
+
+
+PLAYLISTS
+===============================================
+pl-create name-of-playlist
+pl-rename name-of-playlist
+pl-export filename
+pl-import filename
+
+
+
+#### SYSTEMD BOOT EXAMPLE CONFIG FILES ####
+
+### arch.conf ###
+title Archlinux
+linux /vmlinuz-linux
+initrd /intel-ucode.img
+initrd /initramfs-linux.img
+options root=PARTUUID=38556659-725f-ed46-b800-07ca7d834d84 rw
+
+### arch-lts.conf ###
+title Arch-LTS
+linux /vmlinuz-linux-lts
+initrd /intel-ucode.img
+initrd /initramfs-linux-lts.img
+
+### loader.conf ###
+options root=PARTUUID=38556659-725f-ed46-b800-07ca7d834d84 rw
+default arch
+arch-lts
+timeout 4
+
+
+
+
+#### NVIDIA AND DKMS COMMANDS - NOTES ####
+
+nvidia-smi # shows GPU and it's attributes/temp/drivers version/processes
+nvidia-settings # brings up settings gui
+
+# dkms useful commands
+
+dkms status # reveals problems with broken links
+dkms autoinstall # need more research
+
+# dkms folders are located in /var/lib/dkms/
+# if not part of current kernels, safe to delete here and just run:
+dkms status # to verify
+
+
+#### DUCKY KEYBOARD NOTES ####
+
+
+Fn + Alt +T
+  1: Wave mode
+  2: Color Cycle Mode
+  3: Rain Drop Mode
+  4: Ripple Mode
+  5: Random Reactive Mode
+  6: Reactive Mode
+  7: Halo Mode
+  8: Breathe Mode
+  9: 100% Full Backlist Mode
+  10:Radar Mode
+  11:Backlit OFF
+
+Macro
+
+#### DWM PATCH NOTES ####
+
+DWM Patches
+
+xrdb       - allows dwm to read colors from .Xresources/color border
+vanitygaps - adds inner and outer gaps for appearance
+swallow    - swallow unuseable terminal launching graphical prog.
+fullscreen - allows fullscreen by applying monacle on focused client
+stacker    - moving clients around the stack
+shiftview  - similar to "nextprevtag" on suckless but better/ cycle with ;
+scratchpad - spawn a floating terminal window for quick typing
+
+------------------------------------------
+Consideration
+
+centeredwindowname - center currently selected window
+cmdcustomize - allow command line parameters to set dwm font or color
+colorbar - change foreground and background color of statusbar elements
+           (possible conflict with xrdb ??) - me
+schemeSwitch - cycle through color schemes / light and dark
+           (possible conflict with xrdb or pointless)
+switchtotag - adds a rule to switch to a tag when a specific program is run
+Xresources - handle settings of all type (not just color-xrdb) from Xresources
+zoomswap - swaps current window with previous master when zooming
+
+--------------------------------
+No
+onlyquitonempty - need to remove from current configuration
+
+### FONTS NOTES ###
+
+fc-list  			# will show all fonts on the system
+fc-list |grep Hack		# will show specifics about Hack
+				  and you can get the name here
+/usr/share/fonts		# location where fonts are
+fc-cache			# update the fontconfig cache which
+				  some programs require as they look
+				  in fontconfig when they start
+				  i.e. GIMP and LIBREOFFICE
+
+## if you download a font, put it in /usr/share/fonts
+
+
+#### GIT BASICS   ####
+create a new repository
+-----------------------
+	create a new directory, open it and perform a
+	'$ git init'
+	to create a new git repository.
+
+
+checkout a repository
+---------------------
+	create a working copy of a local repository by running the command
+	'$ git clone /path/to/repository'
+	when using a remote server, your command will be
+	'$ git clone username@host:/path/to/repository'
+
+workflow
+
+	your local repository consists of three "trees" maintained by git.
+	the first one is your
+	1. WORKING DIRECTORY which holds the actual files. the second one is the
+	2. INDEX which acts as a staging area and finally the
+	3. HEAD which points to the last commit you've made
+
+add & commit
+
+	You can propose changes (add it to the Index) using
+	'$ git add <filename>'
+	'$ git add *'
+	This is the first step in the basic git workflow. To actually commit
+	these changes use
+	'$ git commit -m "Commit message"'
+	Now the file is committed to the HEAD, but not in your remote repository
+	yet.
+
+pushing changes
+
+	Your changes are now in the HEAD of your local working copy. To send
+	those changes to your remote repository,
+	execute:
+	'$ git push origin master'
+	Change master to whatever branch you want to push your changes to.
+	If you have not cloned an existing repository and want to connect your
+	repository to a remote server, you need to add it with:
+	'$ git remote add origin <server>'
+	Now you are able to push your changes to the selected remote server
+
+branching
+
+	Branches are used to develop features isolated from each other. The
+	master branch is the "default" branch when you create a repository. Use
+	other branches for development and merge them back to the master branch
+	upon completion.
+
+	create a new branch named "feature_x" and switch to it using:
+	'$ git checkout -b feature_x'
+	switch back to master:
+	'$ git checkout master'
+	and delete the branch again:
+	'$ git branch -d feature_x'
+	a branch is not available to others unless you push the branch to your
+	remote repository
+	'$ git push origin <branch>'
+
+update & merge
+
+	to update your local repository to the newest commit, execute:
+	'$ git pull'
+	in your working directory to fetch and merge remote changes.
+
+	to merge another branch into your active branch (e.g. master), use:
+	'$ git merge <branch>'
+	in both cases git tries to auto-merge changes. Unfortunately, this
+	is not always possible and results in conflicts. You are responsible
+	to merge those conflicts manually by editing the files
+	shown by git. After changing, you need to mark them as merged with:
+	'$ git add <filename>'
+	before merging changes, you can also preview them by using:
+	'$ git diff <source_branch> <target_branch>'
+
+tagging
+
+	it's recommended to create tags for software releases. this is a known
+	concept, which also exists in SVN. You can create a new tag named 1.0.0
+	by executing:
+	'$ git tag 1.0.0 1b2e1d63ff'
+	the 1b2e1d63ff stands for the first 10 characters of the commit id you
+	want to reference with your tag. You can get the commit id by looking at
+	the...
+
+log
+
+	in its simplest form, you can study repository history using..
+	'$ git log'
+	You can add a lot of parameters to make the log look like what you want.
+	To see only the commits of a certain author:
+	'$ git log --author=bob'
+	To see a very compressed log where each commit is one line:
+	'$ git log --pretty=oneline'
+	Or maybe you want to see an ASCII art tree of all the branches, decorated
+	with the names of tags and branches:
+	'$ git log --graph --oneline --decorate --all'
+	See only which files have changed:
+	'$ git log --name-status'
+	These are just a few of the possible parameters you can use. For more, see:
+	'$ git log --help'
+
+replace local changes
+
+	In case you did something wrong, which for sure never happens ;), you can
+	replace local changes using the command
+	'$ git checkout -- <filename>'
+	this replaces the changes in your working tree with the last content in HEAD.
+	Changes already added to the index, as well as new files, will be kept.
+
+	If you instead want to drop all your local changes and commits, fetch the
+	latest history from the server and point your local master branch at it like
+	this:
+	'$ git fetch origin'
+	'$ git reset --hard origin/master'
+
+useful hints
+
+	built-in git GUI
+	'$ gitk'
+	use colorful git output
+	'$ git config color.ui true'
+	show log on just one line per commit
+	'$ git config format.pretty oneline'
+	use interactive adding
+	'$ git add -i'
+
+
+git reference manual
+	https://book.git-scm.com/docs
+
+
+
+#### IRSSI BASIC COMMANDS ####
+
+/NETWORK LIST 				-- default config predefined networks
+/CONNECT Freenode			-- connect to network (replace Freenode)
+/JOIN #irssi				-- join a channel (replace irssi)
+/nick						-- follow it by a nickname to establish a new one
+/IDENTIFY slappy [pass]		-- to register with NickServ (mainly if nickname if taken)
+/PART #nameofchannel		-- to leave a channel
+alt 1-10 or ctrl-n			-- to switch a channel
+
+## Channels so far ##
+freenode					##C -- C programming
+freenode					#archlinux
+esper.net					?? --still looking
+linux from scratch			#lfs-support
+
+
+#### LINUX NOTES - RHCSA ####
+
+New Horizons Computer Learning Center - Omaha
+11422 Miracle Hills Dr., Suite 200
+Omaha, Nebraska 68154
+United States
+Contact: 1 402 331 4123
+------------------------------------------------------------------------------
+sed ":a;/\r$/{N;s/\r\n//;b a}"  ### use this to remove notepad CRLF \r\n
+------------------------------------------------------------------------------
+
+Always useful help and manuals (man is old unix / info is new gnu format)
+
+/usr/share/doc (documentation for programs installed)
+/usr/share/info (info nodes)
+/usr/share/man (man pages)
+
+man <command>
+man sections
+	1 executable programs or shell commands
+	5 file formats and conventions
+	8 system administration commands
+man -k partition |grep 8
+man <ls> 5
+man -k <partition> <searches the mandb for word/topics on "partition">
+apropos <partition> <same as man -k>
+info <command> (navigate with n, p, u)
+info info (how to use info)
+pinfo is like info but the menu items are clearly indicated; so a little easier.
+command --help <a nice compact list of command options>
+which (full path to binary)
+whereis (all info on command like documentation, config files, binary)
+--------------------------------------------------------------------------------
+RHCSA Command Memorization Flash
+
+e
+rd.break 	(CTRL-x to boot)
+mount -o remount,rw /sysroot
+chroot /sysroot
+passwd root
+touch /.autorelabel
+exit
+exit
+
+SELINUX
+sestatus
+setenforce 1
+getenforce
+cat /etc/selinux/config
+hostnamectl set-hostname system1.district.example.com
+vim /etc/sysconfig/network-scripts
+nmcli con mod enps03 ipv4.addresses "172.24.2.70/24 172.24.2.250" ipv4.dns "172.24.2.250" ipv4.method manual connection.autoconnect yes
+systemctl restart network
+nmcli con up enps03
+
+REPO
+vim /etc/yum.repos.d/master.repo
+	[master]
+	name=base
+	baseurl=http://district.example.com/repo/rhel7
+	gpgcheck=0
+	enabled=1
+yum clean all
+yum repolist
+
+LVM
+df -h
+lvextend -r -L 750M /dev/vggroup/wshare
+df -h
+
+USER MGT
+groupadd sysadmin
+useradd susan
+useradd natasha
+useradd harry
+usermod -G sysadmin susan
+usermod -G sysadmin harry
+usermod -s /sbin/nologin natasha
+echo "password" | passwd --stdin harry
+echo "password" | passwd --stdin susan
+echo "password" | passwd --stdin natasha
+
+ACL
+cp etc/fstab /var/tmp/fstab
+getfacl /var/tmp/fstab
+setfacl -m u:susan:-- /var/tmp/fstab
+setfacl -m u:natasha:rw /var/tmp/fstab
+
+GRP COLLAB
+mkdir /data
+chgrp sysadmin /data
+chmod 2070 /data
+cd /data
+touch p1 p2 p3
+ll
+
+NTP
+vim /etc/chrony.conf
+delete all pool.ntp
+	server station1.district.example.com
+systemctl restart chronyd.service
+chronyc sources -v
+timedatectl (verify NTP synchronized: yes)
+
+KERNEL
+vim /etc/yum.repos.d/kernel.repo
+	[kernel]
+	name=update
+	baseurl=http://district.example.com/repo/errata
+	enabled=1
+	gpgcheck=0
+yum clean all
+yum repolist
+yum update -y
+ll /boot/
+reboot (verify new kernel default in grub menu)
+
+CRON
+crontab -e -u jane
+23 14 * * * /bin/echo hiya
+crontab -l -u jane
+
+SWAP
+fdisk -l
+free -m
+fdisk /dev/sda
+n
++512M
+t
+82
+w
+partprobe -s /dev/sda
+mkswap /dev/sda5
+swapoff -a
+vim /etc/fstab
+	add with UUID
+swapon -a (all)
+swapon -s (summary)
+
+TAR
+
+mkdir /configbackup
+rsync -parv /etc /configbackup
+tar zcvf /root/configuration-backup-servert.tar.gz /configbackup
+mkdir /tmp/configcompare
+tar zxcf /root/configuration-backup-server.tar.gz -C /tmp/configcompare
+du -sh /etc
+du -sh /tmp/configcompare
+tar jcvf /root/archive.tar.bz2 /usr/local
+
+UID
+
+useradd -u 3564 jean
+id jean
+
+FIND
+
+cd /home
+mklost+found
+find / -user sasha -exec cp -vp {} /home/lost+found/ \;
+
+LVM
+
+fdisk /dev/sda
+n
+p
+8e
+
+
+Boot Process
+
+BIOS/UEFI
+MBR
+GRUB2
+KERNEL
+INIT/SYSTEMD
+RUNLEVEL
+
+Configure the Boot Loader
+
+GRUB (Grand Unified Bootloader)
+
+Example of configuring kernel parameters at boot: turning off IPv6
+
+cat /boot/grub2/grub.cfg | more  (DO NOT EDIT THIS FILE)
+
+vi /etc/default/grub
+GRUB_CMDLINE_LINUX="...ipv6.disable=1 zswap.enabled=1"
+
+Add custom menu entries (like windows)
+vi /etc/grub.d/40_custom
+
+menuentry "Windows 10" {
+insmod ntfs
+set root='(hd0,3)'
+search --no floppy --fs-uuid --set 474h4b48fhhsk (whatever the uuid is)
+chainloader +1
+}
+
+	(hd0,3) means 1st hard disk and third partition
+	chainloader means the bootloader will be calling another bootloader
+
+Once changes are made to the bootloader config you have to run:
+grub2-mkconfig -o /boot/grub2/grub.cfg #(-o means specify output to somewhere--in this case /boot/grub2/grub.cfg
+grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg (for UEFI-based systems)
+
+init 6 (to reboot the system)
+to check example above of taking out ipv6 and turning on zswap
+
+ifconfig (inet6 should be gone now)
+cat /sys/kernel/debug/zswap/stored_pages (should see that it exists and 0 if it's not swapping to hard disk)
+
+Grub 2 is default bootloader
+	Press e to interrupt and edit boot time parameters
+	find the line that says linux16 and at the end you can add several things
+
+to prevent a module from loading on boot troubleshooting add the following on the linux16 line
+modprobe.blacklist=modulename (substitude the name of the module after the =)
+
+single-user mode -- good for troubleshooting and loss of root password but you CANNOT troubleshoot
+filesystem and partitioning --i.e. fdisk in single-user mode
+
+to repair or troubleshoot disks and file systems you need to use rescue mode from a redhat dvd
+or usbstick
+
+GRUB Troubleshooting
+
+Boot into rescue mode with installation DVD or usb stick
+
+cat /etc/default/grub (check the GRUB_CMDLINE_LINUX= )
+cat /etc/grub.d/40_custom (additional grub boot menu entries here)
+
+if you make a change to either you must run:
+grub2-mkconfig -o /boot/grub2/grub.cfg (see above for UEFI style)
+
+if grub itself or the MBR is corrupted you can reinstall grub:
+grub2-install /dev/sda
+
+missing mount points on boot
+rescue mode and cat /var/log/message | grep mount (see if any failed here)
+if so open /etc/fstab and comment them out with # for the time being
+
+blacklist kernel modules:
+modprobe.blacklist=pcspkr (do this in e mode on linux16 line)
+
+echo "blacklist pcspkr" >> /etc/modprobe.d/blacklist.conf
+
+sysctl -a |grep ipv6
+
+-------------------------------------------------------------------
+
+MEMORY INFORMATION OR TROUBLESHOOTING
+
+free
+cat /proc/meminfo
+vmstat (-s for detailed info)
+ps_mem (python script to get core mem usage and per program)
+smem -tk
+top -b |head -10
+htop
+glances
+
+------------------------------------------------------------------
+Boot from MBR or GPT
+
+GPT
+upon initial installation boot menu press tab to pass parameters
+add the following to the end
+inst.gpt (this will allow you to work with GPT disks even if you are below 2 TB)
+
+Runlevels
+
+runlevel (shows previous-current like 5 3)
+init 0 is shutdown or init 0
+init 3 is multi-user.target and networking but no X windows environment
+init 5 is graphical.target environment
+init 6 is a reboot
+
+Setting and Getting Runlevels
+
+systemctl list-units -t target (list of available targets)
+systemctl get-default (default target/or runlevel)
+systemctl set-default multi-user.target
+systemctl set-default graphical.target
+
+SYSTEM LOGS / JOURNALCTL
+---------------------------------------------------------------------------------------
+
+System log files are stored in /var/log as with most applications.  SELINUX log in
+/var/log/audit/audit.log
+
+SystemD application has been added to allow us to analyse the boot process.
+
+To get the boot process duration, type:
+
+# systemd-analyze
+
+To get the time spent by each task during the boot process, type:
+
+# systemd-analyze blame
+
+In addition, Systemd handles the system event log, a syslog daemon is not mandatory any more.
+
+To view the log:
+
+# journalctl
+
+To get all the events related to the crond process in the journal, type:
+
+# journalctl /sbin/crond
+
+Note: You can replace /sbin/crond by which crond.
+
+Altenatively, to get all the events related to the crond process, you can also type:
+
+# journalctl -u crond
+
+To get all the events since the last boot, type:
+
+# journalctl -b
+
+To get all the events that appeared today in the journal, type:
+
+# journalctl --since=today
+
+To get all the events with a syslog priority of err, type:
+
+# journalctl -p err
+
+To get the 10 last events and wait for any new one (like tail -f /var/log/messages), type:
+
+# journalctl -f
+
+By default, Journald logs are stored in the /run/log/journal directory and disappear after a reboot.
+
+To store Journald logs in a more permanent way, type:
+
+# mkdir /var/log/journal
+# echo "SystemMaxUse=50M" '2 greater than symbols' /etc/systemd/journald.conf
+# systemctl restart systemd-journald
+
+Note: Setting the SystemMaxUse variable is necessary because otherwise 10 percent of the filesystem where the /var/log/journal directory is stored may be used at maximum by the journal.
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+Interrupting Boot to Gain Access (Lost Root password)
+
+1.Arrow keys on boot menu/highlight appropriate entry/type e
+2.Find linux16 line and then cursor over to "ro" which we want to now edit to look like:
+rw init=/sysroot/bin/sh
+3.ctrl-x to boot
+4.chroot /sysroot
+5.passwd (to now change the root password)
+________________________________________________________________________
+systemd.unit=emergency.target (starts a mode of operation called emergency target(then press ctrl-x to boot)
+
+to use different "runlevels"systemd.unit=name.target (with name either being multi-user.target/graphical.target/rescue.target/systemd.target)
+
+*denotes lost password procedure
+
+systemd.unit=graphical.target (standard gui boot)
+systemd.unit=multi-user.target (no gui or problem with gui)
+systemd.unit=rescue.target (if you need direct access to recovery shell) require root access
+systemd.unit=emergency.target (no filesystems are mounted except root in read-only)require root access
+*rd.break
+*init=/sysroot/bin/sh (starts a shell and mounts the root filesystem in read-only no password)
+
+systemctl get-default (returns the default "run level")
+
+Practice booting into each of the above
+
+
+Lost password procedure
+
+Use the following command before you begin practice for the lost password
+pwmake 128 | passwd --stdin root (changes the root password with a random string)
+log out
+reboot and press e to edit grub2
+append rd.break at end of linux 16 line (this interrupts the boot sequence before the root is properly mounted
+mount -o remount,rw /sysroot (remounts the root /sysroot filesystem)
+chroot /sysroot
+passwd (change the password)
+touch /.autorelable (because selinux isn't running it does not preserve the context of the /etc/passwd file.  this relabels with the correct SELinux context.)
+exit
+exit
+
+Modify the System Bootloader
+
+Means we must know how to configure GRUB 2 in detail.
+	Configuration is available in /etc/grub2.cfg which is a symbolic link to /boot/grub2/grub.cfg(BIOS) or /boot/efi/EFI/redhat/grub.cfg(UEFI)
+
+press e when you see "The selected entry will be started automatically in 5s.
+locate line that starts with linux 16
+delete rhgb quiet and at the end of the line ty
+
+/ #root
+~ #home directory
+/boot kernel and stuff required for boot
+/dev #devices and hardware
+
+jobs (shows jobs running in the background--fg with job number will bring to foreground)
+
+env (display environment variables)
+whoami (currently logged in user)
+who
+which (find location of a binary program)
+w (like who but better and more info)
+id #lists groups you belong to and userid
+cat /etc/groups to see all groups and id
+cp
+mv #also renames
+mkdir -flags nameofdirectory
+rmdir #removes directory (if empty)
+rm #removes files and directories with -r flag
+cat #print out everything in file
+touch # creates an empty file
+pwd
+runlevel
+ls
+ls -R (recursively show everything from root up to current directory)
+ls -lt (list by modification time - most recent at the top)
+ls -lS (list from largest to smallest)
+ls -ld (longlist only the directory info)
+ls -li (long listing with inode info)
+env (to view environment variables)
+echo -e "Logged in users \n" $(who)  -----the -e says to use line characters to move to a different line (/n)
+
+
+cd
+vi #to quit vi :q
+vimtutor (command that starts a vim tutorial)
+vi basics (:wq-write changes and quit / :q!-abandon changes / x-deletes currently highlighted character / dw-deleted highlighted word / dd-deletes line / yy copes current line into buffer / p paste or places text from buffer / u restores text from a previous change / G goes to end of file)
+vi specialized commands (vipw, vigw, visudo which edit /etc/passwd, /etc/group, /etc/sudoers respectively)  (vipw -s and vigr -s edit /etc/shadow and /etc/gshadow respectively)
+
+PATH=$PATH:/home/jmunos/scripts (to add a path to run scripts - to do permanently add to /etc/profile.dff
+
+nano
+emacs
+chmod 777 #4=read 2=write 1=execute
+head #first ten lines
+tail #last ten lines
+tail -f #follows in real time
+shutdown -r -h +60 #in an hour
+poweroff
+init 0
+ifconfig #network info
+tree
+du-disk usage command i.e.  du -sh
+blkid (to get uuid for drives)
+su username (switches with executing login scripts in /etc/profile and .bash.profile
+su - username (switches and executes login scipts in folders above)
+echo $SHELL (returns the current shell)
+history | more (shows cli command history last 1000)
+!43 (runs command from entry 43 of the command history)
+
+CHANGE SHELL PROMPT FORMAT
+PS1 variable is the shell prompt
+The following will change text color,date,hour, username, hostname and working directory
+PS1="\[\033[34m[\$(date +%H:%M)]\u@\h:\w  "
+Another example
+PS1="[\d \u \w]->" Gives date, logged in user and working directory
+
+
+command line tools
+telnet
+nmap (powerful port scanning tool that detects and reveals service running on the local system)
+elinks (cli web browser)
+lftp (access FTP servers with command completion)
+______
+FIND Command examples
+
+find <path> <search criteria> <action>
+find /home -name grub.conf
+find . -type f -name abc.txt (. is the current directory/f is file/d for directory)
+find . -type f -perm 0777 -print (to find based on permissions)
+find / -type -f -perm 0777 -exec chmod 755{} \; (this finds files with permission 777 and changes to 755)
+find / -size +10M (find all files greater than 10MB)
+find . -size -1M (find all files less than 1MB)
+find / -size +1M -size -3M (find all files greater than 1MB and less than 3MB)
+find . -type f -perm
+find . mtime +1 (all files modified within 1 day
+find . mtime -1 (all files modified 1 day ago)
+find . mmin -1 (all files modified within a minute ago)
+find . -maxdepth 1 -name abc.txt (only 1 deep recursively)
+find . -type f -perm /u=s (to find any files with sticky bit)
+find . -type f -perm /g=s (to find groups with sticky bit)
+find . -type f -perm 0777 -exec chmod 755 {} \;
+find / -user jmunos -name abc.txt (find files based on user)
+find . -type f -not -name "*.html" (very helpful to find files that are not something--like in a folder full of images)
+find . -name "*.txt" -exec grep -I "EARTH" {} \; (this will find all txt files in the current directory and search them for the word EARTH)
+find / -size +1G -mtime +300
+find /etc -type d  (finds all the directories in /etc --with permission errors)
+find /etc -type d 2>/dev/null (finds all the directories in /etc and sends error to null)
+find /etc -maxdepth 1 -type d -perm -g+s (finds all directories in /etc depth=1 with GUID permissions)
+find / ! \( -path /mnt -prune \) -size +1G  ## exclude certain paths from find search
+find / ! \( -path /mnt -prune \) ! \( -path /proc -prune \) -size +1G  ## exclude multiple paths from find search
+
+
+locate (indexed every 24 hrs)
+less (supports vi style search / or ?)
+sort (will sort in alphabetical order)
+grep (-i is case insensitive) (-v reverse or opposite)
+
+grep -v '^$' /etc/samba.conf | grep -v '^#' (cool switch using reverse matching -- -v is opposite of ^$ which selects empty lines so you get non-empty lines then piped into grep -v ^# which is opposite of all lines that are commented so you get all non commented lines) result is all non-empty lines that are not commented.
+
+special characters in regular expressions ^$#[]  for more man 7 regex
+
+diff (can easily identify the differences in two files)
+wc (word count can return number of lines, words and characters in a file)
+sed (stream editor)allow you to search for and change specified words in a file
+sed 's/writeable = yes/writeable = no/g' /etc/samba/smb.conf > ~/smb.conf
+(would replace all Samba shares that are writeable with no)
+
+#### SED ####
+sed -E '/^(#|$)/d)' /etc/systemd/system/httpd.service     #-E is enhanced #/ delimits the regular expression #^ means beginning of the line # group (#|$) means #-beginning or $-endofline marker
+#### sed notes ###
+
+## Taken from https://linux.die.net/abs-guide/moreadv.html#EX57
+
+# delete all blank lines
+# -e means and editing command follows
+# ^ is the beginning of a line
+# $ is the end of a line
+# with nothing between ^ and & the 'd' is delete
+sed -e 's/^&/d' $filename
+
+# print only lines containing "slappy" (with -n option)
+# may be useful for commands like df
+sed -n '/slappy/p'
+
+# substitute "Linux" for first instance of "Windows" found in each line
+sed 's/Windows/Linux'
+
+# substitute "Linux" for every instance of "Windows" found in each line
+sed 's/Windows/Linux/g'
+
+# delete all spaces at the end of every line
+sed 's/ *$//'
+
+# delete all lines containing slappy
+sed '/slappy/d'
+
+# delete all instances of slappy, leaving the remainder intact
+sed 's/slappy//g'
+
+## let's try renaming filenames with whitespace ##
+sed -e 's/* */_/g'
+
+## let's try renameing filenames another way ##
+find . -name "* *" -exec sed -e 's/* */_/g' {} \;
+
+## renaming files another way (should work)
+find . -type f -name 'Lucky-*' | while read FILE ; do
+    newfile="$(echo ${FILE} |sed -e 's/old/new/')" ;
+    mv "${FILE}" "${newfile}" ;
+done
+
+## even more useful script for renaming ##
+function renameFilesRecursively () {
+
+  SEARCH_PATH="$1"
+  SEARCH="$2"
+  REPLACE="$3"
+
+  find ${SEARCH_PATH} -type f -name "*${SEARCH}*" | while read FILENAME ; do
+      NEW_FILENAME="$(echo ${FILENAME} | sed -e "s/${SEARCH}/${REPLACE}/g")";
+      mv "${FILENAME}" "${NEW_FILENAME}";
+  done
+
+}
+
+use the above this way:
+renameFilesRecursively /home/slappy/ apple orange
+
+#
+sed -n 5p /etc/passwd  # would print out the fifth line of the /etc/passwd file
+
+cp -u ~/file1 ~/backup (will copy a file as an update copy only if the file is newer than the desination --maybe great to script into a startup)
+
+ldd /bin/cp (ldd command is used to display all shared libraries required by a specified program)
+
+pinfo bash (walkthrough and introduction to bash)
+___________________________________________________________
+RHCSA YUM + RPM
+
+files to understand yum configuration
+
+/etc/yum.conf
+/etc/yum (files)
+/etc/yum.repos.d (files)
+
+to get full list of yum configuration directives and current values run:
+yum-config-manager
+
+yum.conf (line by line)
+[main]
+#header that suggests all directives below apply globally to yum
+
+cachdir=/var/cache/yum/x86_64/7Server directory
+#specifies where caches of packages, package lists and related databases are to be downloaded
+
+keepcache=0
+#boolean directive whether yum actually stores downloaded headers and packages in the directory specified by cachedir.  This example suggests that caches are not kept, which help make sure a system is kept up to date with latest packages (although slightly slower having to download metadata each time.
+
+debuglevel=2
+logfile=/var/log/yum.log
+#detail associated with debug and error messages.  Default is 2.  10 is most info and 0 is almost no information.
+
+exactarch=1
+#makes sure the architechture matches the actual processor type
+
+obsoletes=1
+#supports the uninstallation of obsolete packages in conjunction with yum update command
+
+gpgcheck=1
+#makes yum command actually check the GPG signature of packages.
+
+plugins=1
+#provides necessary lin to Python-based RHN plugins in the /usr/share/yum-plugins
+
+installonly_limit=3
+#how many kernels can be installed at the same time
+
+#metadata_expire=90m
+#expiration life of header information from repository.  It's commented out because default is actually six hours.
+
+#PUT YOUR REPOS HERE OR IN separate files named file.repo
+#in /etc/yum.repos.d
+
+____________________
+Config files in the /etc/yum/pluginconf.d directory
+
+-important with RH subscription and for test but is different in CentOS
+
+1.Redhat Network Plugin (rhnplugin.conf)
+-with a subscription to RHN the rhnplugin.conf is especially important because it enables it and checks GPG signatures
+
+[main]
+enabled = 1
+gpgcheck = 1
+timeout = 120
+
+2.Redhat Subscription Management Plugins (subscription-manager.conf and product-id.conf)
+-connect yum to Red Hat Portal using Subscription Manager.
+
+[main]
+enabled=1
+
+______________________
+Config files in /etc/yum.repos.d
+
+Designed to connect system to actual repositories.
+must have (.repo) and the documentation is avail in man yum.conf
+-Should know how to create from scratch using data from the installation server and  data available in man yum.conf -- as it may be empty on the test
+
+[base] or [updates] or [Centos Repo]
+
+name=CentOS-$releasever - Base
+
+mirrorlist= or baseurl=
+#mirrorlist is a URL that contains a list of multiple URLs to the closest remote servers with a copy of the actual repo of packages.  works with http or ftp or local directories
+
+enabled=0 or enabled=1
+
+gpgcheck=0 or gpgcheck=1 (if you enable need to include below)
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+
+Create your own repo (below)
+
+On the exam the /etc/yum/repos.d may be empty.  You can look at the bottom of the /etc/yum.conf file for some help and actually configure it there but for sure: you have the man yum.conf for help.
+
+At a minimum
+[base]
+name=slappy repo
+baseurl=ftp://10.0.1.98/pub/inst or baseurl=http://server1/inst
+
+you do not have to include gpgcheck, enabled or gpgkey -- for the test
+
+yum clean all (clear out databases from previous repos)
+yum makecache (update local database cache)
+
+_______________________________________________
+Make a repo steps
+
+If there are any existing files in the /etc/yum.repos.d directory, copy them to a backup location like root home /root/
+
+1. 	cp -a /etc/yum.repos.d /root/
+	rm -f /etc/yum.repos.d/*.repo
+
+Mount the RHEL 7 DVD on the /mnt directory or substitute /dev/sd0...
+
+2.	mount /dev/cdrom /mnt
+
+If you only have the ISO file
+
+	mount -o loop nameofiso.iso /mnt
+
+
+
+yum list | less
+yum list |grep packagename
+yum search wireshark
+yum install wireshark*
+yum list installed | grep wireshark
+yum repolist
+yum repolist all
+yum-config-manager --enable "name of repository"
+yum-config-manager --add-repo "http://10.0.1.98/centos
+yumdownloader kernel-3.xxxxx (will allow you to download packages)
+
+Package Groups
+yum group list
+yum group info "Basic Web Server"
+	also shows Group ID and Environment ID (used in kickstart)
+yum group info "Print Server"
+yum group install "Print Server" -x paps -x gutenprint-cups
+#above command will install group but leave out said packages
+
+Updating
+
+yum info wireshark (info and version)
+-above is equivalent to:
+rpm -qi wireshark
+
+yum whatprovides "*.repo"
+yum whatprovides "*evince*" (if you want to install evince but don't know 	name exactly
+yum update wireshark
+yum update (will check for updates for all installed packages)
+
+Re-install or replace
+
+yum list installed | grep wireshark
+yum reinstall wireshark
+yum remove wireshark
+yum erase wireshark (does the same as remove)
+yum swap *vnc* *rdp* (removing vnc and replacing with rdp)
+
+Configure repositiories
+
+yum repolist (list of enabled repositories)
+yum repolist all (all possible ones - even disabled)
+yum-config-manager --enable *name of repository*
+yum createrepo
+
+
+Using local repositories
+
+you have to install the createrepo program
+yum list installed | grep creatrepo
+
+createrepo /custom_repo/
+vi /etc/yum.repos.d/rhel-local.repo
+
+	[custom_repo]
+	name=Custom Local Repository
+	baseurl="file:///custom_repo/"
+	gpgcheck=0
+	enabled=1
+
+yum repolist
+
+RPM
+command to import GPG key
+rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+
+
+rpm -qa (lists all installed packages)
+rpm -qf /path/to/file (Identifies the package associated with file)
+rpm -qc packagename (Lists only config files from packagename)
+rpm -qd packagename (Lists only documentation files from packagename)
+rpm -qi packagename (displays basic information for packagename)
+rpm -ql packagename (lists all files from packagename)
+rpm -qR packagename (notes all dependencies)
+rpm -q -changelog packagename (displays change info for packagename)
+rpm -qlp packagename (the -p flag queries the packagefile and not the local RPM database)
+
+Upgrading the Kernel
+
+IMPORTANT (DO NOT)
+rpm -U newkerl (overwrites the existing kernel)
+
+BETTER
+rpm -ivh
+
+BEST
+yum install kernel (this installs the new kernel side by side with the existing kernel)
+
+FILES IN THE /BOOT directory
+config	-	Kernel configuration settings; a text file
+grub2/	-	Directory with GRUB configuration files
+initramfs-*	The initial RAM disk filesystem, a root filesystem called furing the boot process to help load other kernel components, such as block device modules
+initrd-plymouth.img	RAM disk filesystem for graphical animation displayed at boot by plymouth
+symvers	-	List of modules
+System.map	Map of system names for variables and functions, with their locations in memory
+vmlinuz		The actual Linux kernel
+
+
+To check GPG signature
+
+rpm --checksig pkg-1.2.3.4.noarch.rpm
+if successful you'll see:
+pkg-1.2.3.4.noarch.rpm: rsa sha1 (md5) pgp md5 ok
+this guarantees the package is authentic and unmodified.
+
+rsa -Rivest, Shamir and Adleman (public key algorithm)
+sha1- A 160bit message digest secure hash algorithm
+md5-Message Digest 5, a cryptographic hash function
+
+____________________________________________________________
+
+Variables
+set-shows all local variables
+my_variable=test #an example local variable
+env-shows global environment variables
+export my_variable-makes local ones global
+unset my_variable will remove
+.profile file in home directory is where variables are stored permanently
+
+Aliases in .bashrc
+(creates shortcuts to often used things)
+
+(Some good examples)
+alias ltr='ls -ltr'
+alias ll='ls-l --group-directories-first'
+alias sshweb1='ssh -p 5051 username@192.168.1.1'
+alias clean-update='sudo apt-get update && sudo apt-get upgrade && sudo apt-get autoremove && sudo apt-get autoclean'
+alias lla='ll -A'
+shopt -s cdspell
+
+The Shell #Has three types of channels STDIN=0 STDOUT=1 STDERR=2
+#standard input i.e. keyboard
+#standard output i.e. what is shown in the shell
+#standard error
+> is standard output
+echo "this should be in a file" > somefile.txt
+>>appends the file, it doesn't overwrite like single >
+#how to redirect standard error output
+ls -alh alsdkfjlsjdf 2> err.txt
+#input redirection=<
+echo "this is the message text" > message.txt
+mail -s "this is the subject" jason < message.txt
+#pipes
+ps aux is a great example for a lot of info vomited, so sort it
+ps aux | less #q gets you out of less
+Pipes #prog1 | prog2  takes output from prog1 and feeds to prog2
+
+Processes (2 main parts)
+top #shows PID #they are always unique
+#PID 1 is always init (init runs through startup scripts)
+#UID is which user owns the process
+nice (high number is low priority and vice versa)
+SIGNALS # Value give different signals to processes as instructions
+kill -l #gives a list of processes and corresponding numbers
+kill 2196
+#the above would kill 15 for Firefox which was PID 2196
+
+Great kill example for killing cupsd (common unix printer service)
+killall cupsd
+
+pkill could be used to kill all processes for a specific user
+
+top #great for monitoring processes
+htop #may need to sudo apt-get install htop
+htop has a much nicer interface # you can use F1-F9 and kill processes
+
+nice -n (-20 through 15) -20 being most important and least nice
+renice #you can change the priority
+
+proc (process file system a sudo filestystem)
+strace (very involved way to follow what a process is doing)
+
+
+Linux Filesystem
+
+man hier
+/#root
+/bin #basic system commands
+/etc #all of the configuration data for an application
+/sbin #system binaries critical files to not mess with
+
+/tmp #for temporary files - blown out on every restart
+/home #all users directories
+/lib #shared libraries - like dll's in windows
+/dev #all devices #sd is a hard disk sda #number is the partition
+/etc #configuration files for everything
+/home
+/media #on ubuntu where automounted stuff is /mnt on other systems
+/opt #can put optional software here can compile stuff there and put links
+/proc
+/usr #non essential binaries and programs
+/var #various but most importantly /var/log
+
+
+Types of files Linux knows
+1.Regular rwx
+2.Directories drwx
+3.Links lrwx
+4.Block device brx-
+5.Character file
+6.Socket
+
+Scheduling
+crontab
+
+crontab -e # to edit user's crontab
+/etc/crontab
+
+##
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install
+sudo apt-cache search tmux ##terminal multiplexer##
+
+tail /etc/passwd
+tail /etc/group
+tail /etc/shadow  !=no password *=cannot login
+
+Where to find answers
+
+catb.org
+
+Archiving and Compression
+
+Archiving is creating one logical file out of a bunch
+compression is shrinking based on repeated patterns
+
+tar -zcvf docs.tar.gz Documents/ #example
+z-gzip to compress an archive
+c-create-creating a new archive
+v-verbose-one line of output for each file that we archive
+f-filename follows that were creating
+
+to extract
+decompression_chamber
+tar -zxvf docs.tar.gz
+
+to create
+tar -zcvf docs.tar.gz
+
+Bash Scripting
+Pipes/redirection/STDIN-STDOUT-STDERR
+> will overwrite >>will append
+wc is the wordcount command
+wc -l > testfile
+&& means and
+|| means or
+
+
+Bash Programming (Sublime text is a great editor)
+
+#will not run for comments only
+#! is called shebang--always first line of bash script
+#!/bin/bash
+Name scripts xxx.sh--.sh really doesn't matter it's just a naming convention
+
+executing scripts
+source bring the variables from the script into your shell
+. is the same as source
+bash also works but does not bring variable from script into shell
+
+
+
+
+Books
+Michael Lucas
+"Networking for System Administrators"
+"SSH Mastery"
+
+COMPTIA+ Linux Course
+
+Enable and Disable Integrated Peripherals
+
+lsmod  list modules running in memory
+lsmod | less
+lsmod | grep joy "only return the single line which includes joystick related"
+
+#to unload a module
+
+modprobe -r joydev #this will unload but not permanently just real time
+nano /etc/modprobe.d/joydev.conf
+blacklist joydev  #prevents a module from loading at boot but a user can still load it manually
+
+nano /etc/modprobe.d/blacklist.conf
+install joydev /bin/false  #prevents joydev module from ever being loaded
+
+Configure systems with peripherals like keyboards
+
+ifconfig
+#ip addresses and network information
+ping www.google.com
+
+Configure systems without external peripherals (headless)
+
+cd /etc/rc3.d  #subdirectory for runlevel 3 and .d is for daemon
+ls *ssh #brings back S02ssh #means ssh daemon is set to start
+cd /etc/ssh
+sshd #is the ssh daemon
+nano sshd.conf
+
+check X11 Forwarding
+putty is a program on windows to connect to anything that listens of port 22 (like ssh)
+nautilus to bring up a graphical interface that shows up in windows
+nautilus & #to run in background and keep terminal
+
+Different types of mass storage
+
+ls /dev/sd*
+/dev/sda /dev/sda1 /dev/sda2 /dev/sdb1
+#to mount use mount /dev/sdb1 /mountdir(or whatever)
+
+ls /dev #explanation
+lists all devices harware and software devices
+
+Hardware resource information
+Two ways for device drivers.  1. Compile into kernel 2.  Modules
+uname -r #lists version of kernel running
+Modules
+cd /lib/modules
+cd /proc #virtual file system that shows running processes only while linux is running.
+cat interrupts | more #list the IRQ or interrupts used to get the cpu's attention
+ps aux #x=all processes/u=user processes/x=background daemon processes
+
+Manipulate usb devices
+lspci
+find /dev/bus #shows any items in usb bus that are connected
+lsusb -D /dev/bus/usb/001/015 | more #gives detail on specific usb device
+dmesg   #troubleshooting and shows log entries for devices connected to system
+
+Filesystems that are only running when the os is running
+ls /proc
+ls /sys/module
+cd /dev
+udev #a daemon that dynamically detects hardware and creates a device file in /dev
+ls
+dbus #a daemon that watches for events in the os like addition of new hardware
+
+Shutdown and reboot
+restart and shutdown work for clean
+init, telinit 0 means to shutdown
+/etc/init.d contains scripts to start and stop daemons
+systemctl used to control / start and stop machine and processes
+
+Alert messages to users
+wall command to send a message to all users - even remote
+echo "message one" | wall
+
+wall -n #prevents a banner and who it came from
+
+shutdown -k now #broadcasts shudown message but doesn't actually happen
+
+How to terminate processes
+ps #shows which processes a user has spawned
+
+ctrl-c
+
+suffix command with an & keeps command prompt
+
+kill -15 7196 #terminate process properly and flush data to disk
+kill -9 7200 #killing the process and not waiting/not clean
+
+Runlevel 1 is single user mode which is also (recovery mode)
+
+ifconfig #displays the network interfaces
+ls /etc/rc1.d #lists the services loaded in runlevel one
+ls /etc/rc2.d #lists the services loaded in runlevel two S
+
+Modules
+lsmod lists the status of all modules currently loaded in the kernel--it does this by formattin and printing the contents of the /proc/modules file.
+insmod inserts a module without resolving dependencies
+modprobe inserts a module after resolving module dependencies
+kmod loads modules automatically
+
+/proc/sys/kernel --inside here is hostname, domainname, osrelease
+
+/etc/inittab --lists the default runlevel for linux
+
+Samba enables interconnectiviy between Linux and Windows
+nmbd and smbd are the two daemons that need to be running
+smbstatus to check which clients are accessing
+/etc/init.d/smb restart to restart the samba server
+/etc/samba/smb.conf is the samba configuration file
+
+DHCP
+dhcpd daemon which is the core of the DHCP system
+config file is in /etc/dhcpd.conf
+/etc/init.d/dhcpd start (or reload)
+
+The Linux Kernel
+
+/usr/src/linux is where the source tree is
+make config - text based yes/no/module are choices
+make menuconfig - test based using arrow keys hierarchical
+make xconfig - point and click graphic-based
+make config
+make clean
+make bzImage
+
+
+Modules
+
+Module vs. Monolithic approach
+Monolithic-drivers always available but larger in size and memory
+
+insmod-to load a module manually (no dep check)
+rmmod-to remove modules not currently being used
+lsmod-to list the modules that are currently loaded
+modprobe-check dependencies and load module
+modinfo-to display information on currently loaded modules
+   modinfo options
+      -a information on the module author
+      -d a description of the module
+      -h info about the code of the module
+      -p parameters available to a module
+      -v version information
+
+depmod-command checks for module dependencies and builds a database, located at /lib/modules/kernel_version/modules.dep
+kerneld (kmod is current version)-a daemon that enables dynamic or auto loading and unloading of modules
+
+Command Sequence for kernel compilation
+make dep, make clean, make bzImage, make modules, make modules_install
+
+df command
+df -h
+
+du command (lists everything used in the home directory recursively)
+du -chd 1(d is depth of folder/c is total at the bottom)
+
+DIFF
+diff (compares two files)(patches two files)
+diff test.txt test2.txt
+diff 5.txt 6.txt > patchinfo
+patch 5.txt -i patchinfo -o updated.txt
+
+FIND (files or folders)
+find /var/log -name "nginx"  (exact matches only)
+find /var/log -type d -name "nginx"(directories only)
+find /var/log -type f -name "nginx" (files only)
+sudo find /var/log -name "error*" (with wildcard)
+find . -type f -name ".*" (find all files hidden in current directory)
+find . -size +1G
+find . -size +1M
+sudo find /var/log -size +2M
+sudo find /var/log -size -1M
+
+GREP
+grep -l '^root' /etc (would print only filenames starting with root)
+grep '\<alex\>' (find only alex and not alexander)
+grep road trnt.txt (default is case sensitive -won't find Road)
+grep road -i trnt.txt (case insensitive)
+grep -in road trnt.txt (adds line number)
+grep -A 2 road trnt.txt (show 2 lines after search term)
+grep -B 2 road trnt.txt (shows 2 lines before search term)
+grep -C 2 road trnt.txt (shows 2 lines before and after)
+grep -c road trnt.txt (counts how many times it finds it)
+grep -icr road * (recursive in all files in directory)
+
+GREP in processes
+ps -ef | grep firefox
+history | grep apt-get (command line history and find apt-get)
+grep
+
+AWK (programming language) -difficult
+awk '/road/' trnt.txt
+awk '{print $1 }' trnt.txt (returns first word on each line)
+awk '{ print $1}' (example: ps aux |awk '{ print $1 }')
+awk 'BEGIN { FS=","} { print $1 " " $7} END { print "Done processing: " FILENAME }' ottawa.csv
+
+SED (stream editor)text processing and substitution
+sed 's/yellow/red/' trnt.txt
+sed -n '/wood/ p' trnt.txt (same as grep in this example)
+sed '2 d' trnt.txt (will delete the second line)
+sed '1,$ d' trnt.txt (deletes everything after the 1st line)
+sed '$ a\and Steve Scott' trnt.txt (appends Steve Scott to end)
+sed '=' trnt.txt (adds line numbers to a file)
+sed -n 5p /etc/passwd (would print the 5th line of /etc/passwd)
+
+HEAD, TAIL, MORE, LESS (for text files)
+more (page through one page at a time) spacebar
+more -s trnt.txt (removes excess blank lines)
+
+less (greater navigation capability) arrow keys
+less (can type in search terms)
+less (shift f will follow a file and can monitor in real time)
+
+head trnt.txt (first ten lines of file)
+head -n -20 (excludes the last 20 lines of the file)
+
+tail trnt.txt (last 10 lines)
+tail -n 4 trnt.txt
+tail -f trnt.txt (follows a file like auth.log --great for monitoring log files)
+
+KILL (need PID)
+ps -ef | grep firefox
+kill 4028 (will send terminate signal)
+kill -9 4028
+kill -l (lists the different options)
+kill -15 (the default)
+
+WC
+projectgutenberg.org (free books!)
+wc filname.txt
+wc -w (words only)
+wc -l (number of lines)
+wc -m (number of characters)
+wc --help (all the options available)
+
+CURL
+-c put cookie into contents of a file
+-b pass cookie back and forth
+-o output file for http get
+
+-u to pass name:password for http authentication
+-H specific headers
+
+OPEN SSL Digest
+sudo apt-get install openssl
+openssl dgst --help
+echo "test" | openssl sha1
+hmac strengthens the hash
+cat somefile.txt
+openssl sha256 somefile.txt
+
+NGINX (fast high performance web server)
+sudo apt-get install nginx
+open web browser and type in localhost (should see Welcome to nginx)
+ls /usr/share/nginx/html (default place )
+sudo mkdir /var/www
+sudo adduser user group www-data
+sudo chown user:www-data /var/www
+vim /etc/nginx/sites-available/default (where configuration files are stored for nginx)
+sudo service nginx restart (to restart service after changes)
+index.html in /var/www/default
+
+MariaDB is a drop-in replacement (same binary file names but diff source engine) for MySQL(under GNU license)
+sudo apt-get mariadb-client mariadb-server
+
+PHP5fpm (php fastcgi process manager(fpm))
+sudo apt-get install php5-fpm php5-cli
+sudo apt-get install php5-curl php5-gd (gd graphics library and curl)
+sudo vim /etc/php5/fpm/php.ini (search for cgi.fix-pathinfo) possible security risk
+cgi.fix_pathinfo=0 (matches exactly and not close to)
+
+LEMP Stack (Linux/nginx/mariadb/php)
+sudo vim /etc/php5/fpm/pool.d/www.conf (this specifies port to listen for fpm requests)
+
+search for listen =
+
+sudo vim /etc/nginx/sites-available/default
+php section needs editing
+uncomment the fastcgi section
+restart
+
+connect mariadb (mysql
+create database lemp_test;
+create user 'phphuser'@'localhost' identified by 'a;sldkhh';
+grant select,insert,update,delete on lemp_test.* to 'phpuser'@'localhost';
+flush privileges
+quit
+
+vim /var/www/default/index.php
+
+Installing a basic ssl/tls certificate in nginx (if you want users to connect via https)
+openssl genrsa -des3 -out myhostname.key 2048 or 4096
+enter passphrase then it generates myhostname.key
+
+Next you need make a signing request (which will be signed by a ca)
+openssl req -new -key myhostname.key -out myhostname.csr
+
+to use the key in nginx
+creat a passwordless version
+
+we are going to sign our own certificate
+x509 -req -in myhostname.csr -signkey myhostname.key -out myhostname.crt
+sudo mkdir /etc/nginx/ssl (place to store ssl certificates under nginx config directory)
+sudo cp myhostname.crt /etc/nginx/ssl
+sudo cp myhostname.key /etc/nginx/ssl
+sudo vim /etc/nginx/sites-available/default (uncomment HTTPS section)
+SSLv3 is unsecure - do not use
+
+MANAGING /etc/hosts for Web Development
+-We want to test the new website locally before uploading it to production server
+
+
+
+sudo mkdir /var/www/example
+sudo chgrp www-data /var/www/example
+sudo vim /var/www/example/index.html
+sudo cp example.ngx /etc/nginx/sites-available
+sudo ln -s /etc/nginx/sites-available/example.ngx /etc/nginx/site-enabled/example.ngx
+
+sudo vim /etc/hosts (we want to tell the hosts file to look locally before it goes out to dns to try to find it)
+sudo service nginx restart (to restart after modifying hosts file)
+----------------------------------------------------------------
+AVCONV (audio video converter for supported by Ubuntu)
+1. Install avconv
+2.  Extract the audio track of a movie file and save it as an mp3
+3.  Convert a movie file from one format to another
+4.  Extract a still image from a movie file at a particular time
+********************************************
+1.  sudo apt-get install libav-tools (not avconv)
+2.  using how fast.ogg
+
+avconv -i How\ fast.ogg -vn how-fast.mp3 (to extract audio)
+
+3.
+avconv -i How\fast.ogg -strict experimental how-fast.mp4
+
+4.
+avconv -i How\fast.ogg -ss 00:00:10 -vframes 1 f10.jpg
+-------------------------------------------------------------
+
+Web Development
+LAMP Stack= Linux/Apache/MySQL/PHP
+LEMP Stack= Linux/Nginx/MariaDB/PHP
+
+ifconfig
+you can use ifconfig to assign other ip addresses
+dig - a great way to get ip addresses of sites
+/etc/resolve.conf (replaces the old hosts file)
+
+
+--------------------------------------------
+Installation of Apache Webserver
+sudo apt-get install httpd
+sudo systemctl enable httpd.service (enable is key to start at boot)
+sudo systemctl start httpd.service
+sudo firewall-cmd --permanent --add-service=http (allows other systems to see localhost)
+sudo firewall-cmd --permanent --add-service=https
+
+to create default webpage
+/var/www/html
+vi index.html
+
+vi /etc/httpd/conf/httpd.conf  (apache configuration file)
+search in vi - (/listen)
+add in virtual host directory
+<VirtualHost 192.168.232.140:80>
+
+make some dummy html files and put in /var/www/abc
+make some log files to dump log in mkdir /var/log/abc.com
+restart apache (sudo systemctl restart httpd.service)
+
+Apache Log Files
+vi /etc/httpd/conf/httpd.conf
+search for error_log and access_log (vi /error_log)
+cd /var/log/httpd (main log file for apache default)
+cd /var/log/abc.com (should also be it's own error_log and access_log)
+tail -f abc.com (will show you real time as you refresh the webpage if the log is getting updated)
+-----------------------------------
+MySQL
+
+sudo dnf install mysql mysql-server (the dnf is for fedora)
+mysql --version
+
+sudo systemctl start mariadb.service
+sudo systemctl enable mariadb.service
+sudo systemctl stop mariadb.service
+sudo systemctl is-enabled mariadb.service
+
+Secure mySql
+sudo mysql_secure_installation
+enter password for root
+disable anonymous user
+disable remote root login
+disable test database
+reload priviledge table
+
+Configure mySql
+mysql -u root -p
+
+create database test;
+
+add new user
+create user 'newuser'@'localhost' identified by 'password';
+give permissions
+grant all privileges on *.* to 'newuser'@'localhost';
+flush privileges
+show grants for 'newuser'@'localhost';
+mysql -u newuser -p
+
+Creating a Table and Adding data
+create table studentmarks
+sid varchar(20), name varchar(50), marks int)
+insert into studdentmarks
+values ('S1', 'Steve',90);
+insert into studentmarks
+values ('S2', 'John', 80);
+insert into studentmarks
+values ('S3', 'Mary', 95);
+select * from studentmarks;
+
+PHP Package Installation
+
+sudo dnf install php php-mysql
+cd /var/www/html
+sudo vim getinfo.php
+"type in vim"
+	<?php
+	phpinfo();
+	?>
+
+you can now go to browser and type 192.168.0.1/getinfo.php
+
+PHP connection with MySQL or MariaDB
+3 ways
+1.
+2.
+3. PDO
+
+Selecting Data from MySQL Database
+
+Install phpmyadmin
+dnf install phpmyadmin
+----------------------------------------------------
+Building a lampstack
+
+Install (Linux, Apache, Mariadb, PHP)
+Connect to MySQL database using PHP
+Write a script retrieving records
+
+----------------------------------------------------
+
+Network Monitoring
+
+Linux CLI Tools
+top
+(press d to change update delay in seconds)
+(press f (use arrow keys and toggle fields)s (sort)
+
+man top --show how to use -b for batch mode in top
+
+ps aux | more (all processes)
+ps aux | grep sshd
+df
+tcpdump (built in packet sniffer)
+tcpdump -i eth0 (ifconfig if you don't know the ethernet nomenclature)
+tcpdump - eth0 dst 192.168.1.91 and port 22 -A -w capture1.cap(dst is destination)(-w is capture and .cap is a naming convention for a capture file
+tcpdump -r capture.cap (to read what was captured)
+
+windows os monitoring tools (server 2012)
+
+performance monitor
+   data collector sets (establish baseline with a performance monitor)
+
+task manager
+
+event log forwarding (client)
+   winrm qc
+   local users and groups
+   event log reader properties
+
+event viewer
+   subscriptions
+   collector initiated
+   select computers
+   select events (critical, warning, error from system log)
+
+
+
+
+Identify changes that may impact security (remote desktop)
+SIEM Security Information and Event Management(detect anomalies/prioritize and manage incidents)
+
+Multiple collection agents
+Hierarchical
+Gather info from (end user devices, servers, networking devices, firewalls, intrusion detection system)
+**This is what detects a usb drive inserted into a device**
+
+SCADA and ICS
+SCADA
+   Remote hardware monitoring (scientific environments, medical, manufacturing)
+ICS (Industrial Control System)
+   Oil refineries, water treatment plants, power generation facilities
+   Stuxnet affected ICS systems (affected uranium enrichment systems)
+
+NETWORK BANDWIDTH MONITORING
+   Network capacity planning
+   prevent unnecessary spending
+
+   common tools (orion solar winds)
+      netflow analyzer
+      bitmeter os
+
+
+
+
+Monitoring Log Files
+   /var/log
+   Windows Event Viewer logs
+	Creat Custom Views (Error, Critical, Warning)
+
+IDS (intrusion detection systems)
+SCADA (Supervisory Control and Data Acquisition)
+
+tcpdump
+winrmqc-configures the underlying network services required for windows event log retrieval
+
+ENVIRONMENT VARIABLES
+
+echo $PATH
+example of setting and environment variable:
+COSTCENTER="San Diego"
+unset command will remove the variable
+permanent setting of environment variable is done in .bashrc
+export command makes the variable available in subshells
+source command
+___________________________________________________
+Writing BASH functions for frequently used commands (alias and functions)
+--You need to put them in the .bashrc to be permanent
+
+alias ki="uname -r"
+
+how to write a function to return IP addresses
+function showip()
+{
+IP_VAR='ifconfig eth0 | grep "inet addr" | tr -s " " ":" | cut -f4 -d ":"'
+echo "IP:" $IP_VAR
+}
+
+Backticks means you want the result of the command
+_______________________________________________________
+Maintaining Skeleton Directories
+
+cat /etc/default/useradd
+shows location of home directory, default shell and SKEL (files copied to new user home directories)
+
+ls /etc/skel
+You can place any files relevant here and it will be copied to new users
+useradd -m bjones
+ls /home/bjones  (it shows exactly what was in the skel directory copied over
+__________________________________________________________
+Setting the Command Search Path
+
+cd /scripts
+ls
+cat script1.sh
+it won't run it
+
+you need to add any directories that contain binaries or scripts to your path
+
+echo $PATH  (this shows what subdirectories that are searched when you execute a binary command or script
+
+PATH=$PATH:/scripts/
+
+put in /etc/profile.local to make it permananent for anyone who logs onto the machine locally
+
+_____________________________________________
+Shell scripting with if statements to test variables
+
+test -e (means testing for the existence of something in the filesystem)
+test -e /sharedfiles
+echo $?
+0 (which means success)
+
+if statement is used to conditionally execute other Linux commands
+
+#!/bin/bash
+if test $USER == "root"
+then
+{
+   echo "You are logged in as root."
+}
+else
+{
+   echo "You are NOT logged in as root."
+}
+fi
+___________________________________________________
+Writing Shell Scripts using for loops
+
+for i in {1..5}
+>do
+>echo $i
+>done
+1
+2
+3
+4
+5
+
+for ((i=1;i<5;i++))
+>do
+>echo $i
+>done
+1
+2
+3
+4
+____________________________________
+for loops in the filesystem
+
+for i in /home/*
+>do
+>ls -l $i
+>done
+
+make a document called filesizes.sh
+
+#!/bin/bash
+let totalsize=0
+let currentfilesize=0
+for i in /home/*
+do
+    currentfilesize=`ls -l $i | tr -s * * | cut -f5 -d * *`
+    let totalsize=$totalsize+$currentfilesize
+done
+echo "Total space used is" $totalsize "bytes."
+
+
+
+
+
+
+__________________________________________________________________
+Writing Shell Scripts Using While Loops
+
+While is used to test a condition to determine if the statements execute or not
+
+while true
+>do
+>echo "Hello World"
+>done
+
+i=1
+while { $i -le 5 ]
+>do
+>echo $i
+>i=$((i+1))
+>done
+
+_______________________________________
+Writing Shell Scripts Using Command Substitution
+
+read age
+20
+echo $age
+20
+
+read firstname lastname
+bob jones
+echo $firstname
+echo $lastname
+
+exec 1>>/log.txt
+who
+ifconfig
+the above will continue to put the results in log.txt file
+
+seq 5
+1
+2
+3
+4
+5
+
+seq 5 5 20
+5
+10
+15
+20
+
+________________________________________________________
+Shell Script Return Values
+
+test 4 -lt 6
+echo $? (this returns last exit code from the shell)
+0 (this is a successful return code)
+
+test -d /sharedfiles/
+echo$?
+0
+
+test 4 -lt 6 && echo "It is true." || echo "It is false."
+
+#!/bin/bash
+if test $USER == "root"
+then
+{
+   echo "You ARE logged in as root."
+}
+then
+{
+   echo "You are NOT logged in as root."
+return 42
+}
+fi
+
+________________________________________________
+Performing Conditional Mailing to the Superuser
+
+mail -s "Test" root (this sends mail to root with the subject Test and body Hello World)
+Hello World
+
+mail (this checks mail)
+
+how to conditionally mail to root
+
+du -s /home
+du -s /home | cut -f1 (cuts out field one)
+
+spaceused=`du -s /home | cut -f1`
+clear
+echo $spaceused
+read junk
+if (($spaceused > 5))
+then
+{
+   echo $spaceused " bytes currently in use under /home."  | mail -s "Disk space warning" root
+}
+fi
+
+./spaceused.sh
+
+____________
+
+activeusers.sh
+
+#!/bin/bash
+activeusers=`who | wc -l`
+
+if (( $activeusers > 1 ))
+then
+{
+   who | mail -s 'Logged in user warning' root
+}
+fi_______________________________________________________
+Selecting the Correct Script Interpreter
+
+
+whereis bash
+__________________________________
+Managing the Permissions and suid-rights of scripts
+
+chmod o-rw activeusers.sh
+ls -l
+
+chmod u-x,g+x activeusers.sh
+
+chown root filename
+
+chmod u+s filename   (adding a special permission or suid bit) (be careful because if done wrong -- can be a security risk)
+______________________________________________
+Adding, Modifying and Removing Users
+
+useradd -m mjones
+cat /etc/passwd | grep mjones
+cat /etc/shadow | grep mjones
+chage -M 60 mjones (setting maximum password age for mjones to 60 days)
+cat /etc/group (groups and who is a member of each group)
+cat /etc/default/useradd (defines default groups that members will be in)
+usermod -s /bin/csh mjones
+cat /etc/passwd | grep mjones
+
+userdel -r mjones                   (removes users home directory also)
+cat /etc/passwd | grep mjones
+
+Example script for useradding
+
+#!/bin/bash
+useradd jgold -p password -c "Jonathan Gold"
+echo jgold created
+clear
+useradd skolber -p password -c "Stacy Kolber"
+echo skolber created
+clear
+
+USERS
+
+/etc/passwd
+/etc/shadow (passwords and ageing info)
+/etc/group
+/etc/login.defs (common security settings)
+
+useradd jgold -p Pa$$w0rD -c "Jonathan Gold"
+usermod jgold -s /bin/csh
+userdel jgold (keeps home directory files)
+
+Setting User Properties directly in /etc/passwd
+
+vi /etc/passwd
+we can manually make changes to this file
+jgold:x:1003:1003:Jonathan Gold:/home/jgold:/bin/bash
+
+Password Policies
+
+usermod jgold -e 8/1/2018
+you can also use passwd command to set password ageing
+passwd -e jgold
+passwd jgold -n 5 (min number of days that must pass before user can change 	password again)
+passwd jgold -x 30 (makes maximum password age 30 days)
+passwd jgold -w 2 (2 days prior to expiration the user will be warned)
+
+Password Aging
+-m (min days before changing password)
+-M (max days before changing password)
+-W (days before warning about password change)
+-I (days inactive before account lock)
+chage -m 30 -M 24 -W 7 -I 14 slappy
+
+group add
+groupmod -n hr humanresources (changes the name to humanresources)
+groupdel
+
+Adding Users to Groups
+
+usermod jgold -G humanresources
+usermod jgold -G humanresources,sales
+
+Modifying a user's default group
+
+usermod jgold -g sales (changing users default group -- lowercase g matters)
+
+
+______________________________________________________________________
+Manage User and Group information
+
+cat /etc/group (groupname, password, numeric id of group, members of the group)
+whoami
+id (shows username, userid, groupnames, group id's)
+
+groupadd exec
+tail /etc/group
+
+groupmod -A bjones exec (adds a user to a group called exec)
+groupmod -R bjones exec (removes a user from group called exec)
+groupdel exec (removes the whole group exec)
+
+chown user:group finance (format to change user and group ownership)
+
+example: recursively apply write priviledge to a directory
+folder finance with group r-x
+chmod g+w -R finance (to recursively apply permissions to a group and subdirectories)
+
+example: remove execute priviledge recursively if there are scripts that you don't want run -X
+chmod ug+X -R finance (this allows entry to directory but not execute files)
+
+example: add read to everybody
+chmod a+r test
+
+OCTAL-file or directory
+read=4, write=2, execute=1
+chmod 104 test (give owner execute and other read)
+chmod 654 (give owner read and write / group read and execute / other read)
+chmod 770 (give owner and group read and write and execute / other none)
+
+SETUID (chmod u+s OR chmod 4640) file example of passwd where a normal user can run the passwd program and execute as root user
+SETGID (chmod g+s execute with permissions of the group and not the user
+STICKYBIT (chmod +t test OR chmod ) prevents a user from removing a file or accidental deletion
+
+_____________________________________________________________________
+Manage user and group information (password and database info)
+
+cat /etc/passwd | grep bjones
+cat /etc/group | grep salesgroup
+usermod bjones -s /bin/csh -G salesgroup(changes shell for user bjones and added to group salesgroup)
+cat /etc/passwd
+cat /etc/group
+
+getent group (show all groups)
+
+getent passwd bjones (used to retrieve database information)
+it returns only the information for bjones
+
+getent group salesgroup
+______________________________________________________________________________
+Creating and managing special and limited accounts
+
+getent passwd wwwrun (wwwrun used to run apache webservice daemon)
+
+useradd svcacct -s /bin/false (bin/false allows the account only to be used as a service daemon and not used to log into a shell--nice)
+
+chown -R svcacct /webfiles/
+chmod u+x /webfiles/ (sets execute permission for webfiles)
+___________________________________________________________________
+Scheduling Jobs
+
+Working with scheduled jobs
+Three ways
+	cron (running regular recurring hourly or daily
+	at (single job in the future)
+	SystemD (event based or on a periodic time interval --newer versions same as cron)
+
+Cron (handled by crond daemon)
+	/etc/cron.allow --only allow or deny should be used--not both
+	/etc/cron.deny
+	/var/spool/cron (all jobs in crontab located here / don't edit manually)
+	accurate to approximately 1 minute
+	5 field text file
+	minute/hour/day/month/dayofweek
+	0-59  /0-23/1-31/1-12/0-7 (7 and 0 are Sunday)
+	*/10 (would be an example of every 10 minutes)
+
+AT (handled by atd daemon)
+	runs a single command at a predetermined time
+	/etc/at.allow
+	/etc/at.deny
+	can be queried and removed from the command line
+
+SystemD
+	can start a script at a relative time (10 minutes after booting)
+	each job requires 2 config files (service file and timer file)
+	/etc/systemd/system (where scheduled jobs go(
+	can be down to 1 microsecond timing
+
+_______________________________________________________
+How CRON schedules jobs
+man crontab
+man 5 crontab (help on the config file)
+
+ls /etc/cron*
+cat /etc/crontab (this is the key one that shows the format username command to execute (or script))
+/sbin/service crond status (how to check if cron is running)
+
+Scheduling a CRON JOB (systemwide)
+vi /etc/crontab
+build an audit trail of users logged in
+*/2 * * * * root date >> /logged_in_users.txt; who >> /logged_in_users.txt
+
+Scheduling a CRON Job (user specific)
+crontab -e
+
+* * 1 */2 0 history -c; echo "History cleared on $(date)" >> history.log (this will remove the command history)
+ls /var/spool/cron
+
+MANAGING CRON JOBS
+vi /etc/crontab (systemwide crontab)
+crontab -l (lists any cronjobs for the user)
+crontab -r (remove cron jobs)
+/sbin/service crond stop
+/sbin/service crond start
+/sbin/service crond status
+
+____________________________________________________
+SCHEDULING Jobs with AT
+
+/sbin/service atd status
+/sbin/service atd stop
+/sbin/service atd start
+
+ls /etc/at*
+cat /etc/at.deny (should be empty and at.allow does not exist by default)
+
+at the command line
+at 4:00am
+at>rm -rf /tmp/*
+ctrl d (when done)
+
+at noon today
+at>who > /lunch_workers.txt
+ctrl d
+
+at 6am +1day (this means 6am tomorrow)
+at>who > /early_birds.txt
+ctrl d
+
+at 10pm Jan 30
+at>tar -czvf /Backup/yearend.tar.gz /UserFiles
+at>echo "Backup completed on $(date)" >> /Backups/log.txt
+ctrl d
+
+at now +1 min
+at>find / -name "cblackwell" > /UserFiles/cblackwell_files.txt
+ctrl d
+CRON Jobs (time based job scheduler)
+-always on
+-either system or user cron jobs
+-unsupervised
+config files are in /var/spool/cron and /etc/cron.d (user schedules a job goes in /var/spool/cron)
+/etc/crontab (contains all scheduled job)
+
+at command to run jobs once only
+___________________________________________________________________
+Adding cron jobs
+
+cat /etc/crontab
+
+-*/15 (every fifteen minutes)
+
+rccron status (checks for Cron running)
+
+crontab -l (lists any cron jobs for a user)
+crontab -e (to edit cron jobs)
+
+Every ten minutes on mondays
+*/10	*	*	*	1	/scripts/activeusers.sh
+
+ls /var/spool/cron/tabs (shows a file for each user that has scheduled at least one cron job)
+
+crontab -r (removes cron jobs)
+_____________________________________________________________
+Configuring user access to cron and at services
+
+at jobs are used to schedule one time background tasks
+
+rcatd status
+rcatd start (begins at daemon)
+insserv atd (makes it run inbetween reboots)
+
+at noon today
+at> /scripts/activeusers.sh
+ctrl-d to exit
+
+at 10pm nov 30
+at>umount /dev/sdd1
+at>fschk /dev/sdd1 > /fsckresult.txt
+
+atrm 4 (removes job number 4)
+atq (you'll see that job 4 is removed)
+configure user access to cron and at services
+_________________________________________________
+EXAMPLE of SCHEDULING a JOB BASED ON A FILE INPUT
+cat /UserFiles/at_commands.txt
+echo "Initiating one time scheduled system restart at $(date)" >> /restart.log
+init 6
+
+at -f /UserFiles/at_commands.txt now +1 hour
+____________________________________
+MANIPULATING an at Job
+
+atq (view any at submitted jobs that are queued up)
+atq will not tell you what the job is going to do though.  for that:
+at -c 10 (with 10 being the Job ID from the atq command)
+	the environment is listed but the real command to be run is at the bottom
+atrm 10 (this will remove the at job with Job ID 10)
+
+____________________________________________________________
+SYSTEM D Timer Units
+
+A newer alternative to using CRON
+2 config files (.timer and .service) under /etc/systemd/system
+
+**EXAMPLE .service file named script10.service
+
+[Unit]
+Description=Script 10 Logged In Users
+
+[Service]
+Type=simple
+ExecStart=/UserFiles/Scripts/script10.sh
+
+[Install]
+WantedBy=multi-user.target
+
+**EXAMPLE .timer file named script10.timer
+[Unit]
+Description=Execute Script 10 every 10 seconds
+
+[Timer]
+#OnBootSec=10min
+#OnCalendar=Mon 2015-*-1 10:00:00
+#OnCalendar=*:0/15
+OnUnitActiveSec=10s
+unit=script10.service
+
+man 7 systemd.time (for syntax help)
+systemctl list-units | grep script10 (to see what jobs are waiting)
+
+_____________________________________________________________________-
+Scheduling a SystemD Time Unit Task
+
+check script10.timer and script10.service config files
+
+--enable it
+systemctl enable script10.service
+--start it
+systemctl start script10.service
+
+cat /UserFiles/useractivity.txt (you can see it update every 10 seconds)
+_________________________________________________________________________
+Example Exercise on ACL's/Bash scripting/Job Scheduling
+
+1. Find all files on the system that contain a specific username
+2. List the file ACLs for your home directory
+3. Create a script that will list any executable files in you home directory
+4. Schedule a job using the at command
+5. Schedule a job using cron
+6. Schedule a job using systemd
+
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+1. grep -R "powell" * (do this from root)
+2. getfacl ~ or getfacl ~/*
+3. find ~ -maxdepth 1 -executable -type f // or test -x
+4. at 9pm Friday / at>init 6
+5. crontab -e
+	30 22 * * * /UserFiles/Backup.sh  (2230 every weekday every month)
+6. Sample Script
+#!/bin/bash
+
+date >> /tcp_stats.txt
+ifconfig | grep inet | grep -v inet6 >> /tcp_stats.txt
+netstat | grep tcp >> /tcp_stats.txt
+
+
+tcp_stats.service
+[unit]
+Description=TCP Stats
+[service]
+Type=simple
+ExecStart=/UserFiles/Scripts/tcp_stats.sh
+[install]
+WantedBy=multi-user.target
+
+tcp_stats.timer
+[unit]
+Description=Execute tcp_stats.sh hourly
+[timer]
+OnCalendar=*:0/60
+unit=tcp_stats.service
+
+systemctl enable tcp_stats.service
+systemctl start tcp_stats.service
+
+____________________________________________________________________________
+DEVICES AND FILESYSTEMS
+
+Flow is
+
+1. fdisk -l (to get info and we'll pretend /dev/sdb)
+2. fdisk /dev/sdb (makes the partition)
+3. fdisk -l /dev/sdb(to verify and it'll show /dev/sdb1 now)
+4. mkfs -t ext4 /dev/sdb (formats the partition with the filesystem)
+5. fdisk /dev/sdb (make swap partition) change id with t and 82
+6. mkswap /dev/sdb2
+7. swapon
+
+fdisk works with MBR disks (1 TB Limit)
+fdisk -l | more
+fdisk /dev/sdb
+
+gdisk works with GUID Partition Table (GPT)
+
+_______________________________________________
+Creating Filesystems
+
+fdisk -l /dev/sdb (need to make sure you have a partition)
+
+mkfs (formats a partition)
+mkfs -t ext4 /dev/sdb1 (could use ext2,ext3,xfs,vfat)
+________________________________________________
+gdisk and Parted with GPT
+
+(below is an example command line flow with parted)
+parted (changes with parted happen immediately)
+select /dev/sdb
+mklabel gpt
+y
+mkpart primary 1 5000
+mkfs
+y
+1
+resize 1
+6000
+quit
+________________________________________________
+Filesystem Integrity
+
+fsck (filesystem check command)
+$fsck /dev/sdd1 (warning to unmount)
+$umount /dev/sdd1
+$fsck /dev/sdd1
+...clean...
+
+e2fsck (check ext2 ext3 and ext4 filesystems)
+
+tune2fs (to make changes to attributes of a filesystem i.e. modifying volume label, turning on journaling)
+
+$tune2fs /dev/sdd1 -L "log_files"
+
+dumpe2fs (to display information about a filesystem)
+$dumpe2fs /dev/sdb1 | more
+________________________________________________
+Monitoring free space and inodes (meta data -owner -permissions -date/time stamps)
+
+du (disk usage and is recursive by nature)
+du /home
+du -ah
+du --exclude="*.txt"
+
+df
+df -i (inode information)
+___________________________________________________
+Listing and Identifying Processes
+
+ps
+ps aux
+ps aux | sort -nk 4 | tail -3 (sorts the 4th column and shows last 3 entries)
+ps aux | grep syslog
+ps aux | grep http (to see if there is a webserver / Apache running)
+ps aux | grep sshd
+
+Monitoring processes
+
+top (top half shows stats - number of user and load average over the last 1, 5 and 15 min)
+top (press f for config screen then s to sort, spacebar to unbold and remove columns)
+
+TOP in batch mode
+top -n 5 -b > /top_output.txt (when its finished you can cat or just open it up)
+
+Starting and Stopping Processes
+
+systemctl status sshd.service (to see if the ssh daemon is running)
+service sshd status
+systemctl stop sshd.service
+service sshd stop
+
+Starting Services at Boot
+
+systemctl list-unit-files --type service (this lists all the services on the machine)
+systemctl list-unit-files --type service |grep sshd (will show the services specifically for ssh)
+systemctl disable sshd.service (prevents it from starting at boot)
+systemctl start sshd.service (starts it right now)
+
+Identifying SystemD Startup Services
+
+ls /usr/lib/systemd/system/*.service | less (shows all system startup files)
+ls /usr/lib/systemd/system/*.service | grep sshd
+
+SystemD to Manage services
+
+/usr/lib/systemd/system  then ls *.service
+cat sshd.service (you see several sections.  [Unit] [Service] [Install] )
+there is a Wants directive: Wants=sshd-keygen.service
+under the [service] section there is an ExecStart directive and an EnvironmentFile
+systemctl mask sshd.service (would mask and disable it from starting / it puts a symbolic link to /dev/null to prevent it from ever starting)
+systemctl unmask sshd.service (would unmask it)
+
+Using StytemD Process Management
+
+systemctl list-unit-files |less (systemd can manage .automount, .mount, .path files etc)
+systemctl list-dependencies sshd.service (will show dependencies required by a daemon or a service)
+
+
+runlevels (now called targets in systemd)
+ls -ld /usr/lib/systemd/system/runlevel*
+systemctl get-default (output is graphical.target)
+systemctl set-default multi-user.target (old runlevel 3 without graphical interface)
+
+journalctl (shows logged info some are bold or red for problems)
+journalctl -n 5 (latest 5 log entries)
+journalctl -f (liveview of the log)
+journalctl -b (only log entries from current boot session)
+
+example
+gedit &  (starts gedit and retains prompt) gives PID to kill
+kill needs (PID) or Pdan kill by name (pkill gedit)
+
+pgrep (allows you to grep processes)
+example: pgrep sshd
+
+kill -1 (sighup ensures that it will continue to run after you log out of shell)
+
+Managing Process Priorities
+
+nice (default value is 10)
+ps axl to see nice value and PID
+renice 5 12002 (with 12002 being PID)
+nice --5 ./endless.sh (setting the nice value as you execute)
+
+_______________________________________________________________________________________________________________________________________
+Mounting File Systems
+
+mount (by itself shows all mounted file systems)
+mount /dev/sdd1 /tmpfilesystem
+umount /dev/sdd1
+
+automounting
+
+fstab (file system tab)
+mount -a (references the fstab and mounts anything in fstab)
+
+adding user to fstab instead of defaults will allow users to mount and umount (they only use mount and /mountpoint i.e. mount /mountpoint
+
+__________________________________________________
+
+Managing disk quotas
+
+/etc/fstab   need to add usrquota to column in fstab
+
+mount -o remount /tmpmount (remounting something already mounted)
+quotacheck -mavug
+inserv boot.quota (install service at boottime "suse linux" so could be different)
+
+
+quotaon -av (all mounted that support quota and verbose output)
+edquota -u jmunos (set a quota for a user)  soft is a warning / hard actually stops users from adding content
+
+____________________________________________________
+User and Group Disk Quota reports
+
+cat /etc/fstab (see if usr and grpquota support is enabled)
+mount (also shows if it is enabled)
+edquota -u jmunos
+set a hard limit for blocks and a soft limit below that then :wq out of vi
+
+edquota -g salesgroup (same thing for groups)
+
+repquota -av (report for user quotas on device)
+
+_______________________________________________
+File Permissions and Ownership
+
+Owner, Group, World
+- normal data or executable
+d directory
+p named pipe
+l symbolic link
+s socket
+b block device
+c character device
+
+set user ID (SUID) allows someone to execute as the listed owner
+set group id (SGID) same but for group
+sticky bit (directories only) only the owner can delete files
+
+file attributes
+c the file is compressed
+j the kernel should journal all data written to the file
+l the file is immutable
+
+________________________________________________
+Managing Permissions
+
+read=4, write=2, execute=1
+
+chown jmunos *.txt
+chmod 766 *.txt would be(rwx,rw,rw)
+chmod u=rwx,g=rw,o=r *.txt
+__________________________________________________
+Special Permissions
+
+chmod +x file.sh (sets execute to everyone)
+chmod u+s script.sh (s is execute and set user id has been set)
+chmod g+s script.sh (s is execute and set user id for the group)
+chmod o+t script.sh (but really should be used on directories)
+chmod 7666 script.sh (sets sticky bit in the directory)
+_______________________________________________________
+File creation mask
+
+umask (used against the default kernel permissions to adjust)
+according to the kernel, default permissions are 666
+umask 000 (would set default created files as 666)
+subdirectories default is 777
+to make umask setting permanent, set to .profile
+_________________________________________________________
+Group Field
+
+chgrp salesgroup test.txt
+chgrp salesgroup /sharedfiles/
+
+_____________________________________________________
+File and Directory Links
+
+ls -li (to view inode information)
+
+Hard Links
+ln /itdocs/emailpolicy.txt /emailpolicy_hlink.txt
+keep same inode number
+
+Soft Links
+ln -s /itdocs/emailpolicy.txt /emailpolicy_slink.txt
+inode number is different and there is an l in the directory listing
+also means you can have different permissions than the original file
+
+___________________________________________________________-
+Copying versus Linking Files
+
+ls -li (inode numbers become important when copying or linking files)
+symbolic link has a different inode but references the same data
+
+copying a file
+ls -li (has a different inode number and separate data block)
+___________________________________________________________
+Links for administration tasks
+
+/data/websitefiles
+ln -s /data/websitefiles/ /websitefiles
+ls -ld /web*
+
+____________________________________________________________
+File locations under FHS (Filesystem Hierarchy Standard)
+
+/boot (static and unshareable)
+/usr (static and shareable
+/var (shareable)
+/var/mail (shareable)
+
+subdirectories under root is forbidden
+/home default location for user files (common to use a separate partition)
+__________________________________
+Finding files
+
+whereis (to find binary files/binary commands)
+whereis ping
+
+find (files and search is recursive by default)
+find / -user jmunos (takes a while because it is recursive)
+find / -user jmunos -name "*.txt"
+find / -user jmunos -name "*.txt" -exec ls -li {} \; (finding files owned by jmunos and ls -li {} holds the results and \; ends the exec command)
+find /itdocs -user root -cmin -5 (search itdocs recursively owned by root that were created in the last 5 minutes)
+
+locate (an alternative to find but may need to install)
+locate (finds from and indexed database which is much faster)
+locate *.jpg (very quick)
+locate -c *.jpg (counts the number of files)
+_____________________________________________
+
+TCP/IP Networking
+
+IPv4 addresses have 32 bits
+
+CIDR (Classless Inter-Domain Routing)
+Consists of a slash (/) following by a number indicating the amount of one bits in the netmask.  I.E. 255.25.255.0 can be written as /24
+
+RFC 791 is an old standard.  Classes used to be:
+
+A 1.1.1.0 - 127.255.255.255
+B 128.0.0.0 - 191.255.255.255
+C 192.0.0.0 - 223.255.255.255
+D 224.0.0.0 - 239.255.255.255 (reserved for multicasts)
+E 240.0.0.0 - 255.255.255.255 (reserved for experimental use)
+
+subnet mask (also knows as prefix or netmask) is used to find the network and host parts of an IP address
+
+Tools like ping,traceroute,tracepath,ip and ss help diagnose problems on the lan
+
+Individual network devices are configured in the /etc/sysconfig/network-scripts dir
+Network configuration tools nmcli or nmtui as well as Network Manager Connections Editor(gui)
+
+
+
+Name resolution files include /etc/nsswitch.conf, /etc/hosts, and /etc/resolv.conf
+
+Private Networks (RFC 1918)
+
+10.0.0.0 - 10.255.255.255
+172.168.16.0 - 172.168.31.255
+192.168.0.0 - 192.168.255.255
+
+Loopback (communications on a localhost)
+
+127.0.0.0 - 127.255.255.255
+
+Redhat-there are four hostname files of interest
+/etc/hosts (contains local hostname)
+/etc/hostname (the local database of hostnames and IP addresses)
+/etc/resolv.conf (IP addresses of DNS servers)
+/etc/nsswitch.conf (determines priority or order of DNS search)
+
+MAC 48 bit hexadecimal address
+IPv4 32 bit software address
+IPv6 128 bit hexadecimal address
+ifconfig is used to manage network devices
+
+Binary explanation and CIDR Notation
+
+128 64  32  16   8  4   2   1
+
+1   1   1   1   1   1    1   1
+__  __  __  __  __  __  __  __  (255.255.255.0) or /24 (meaning the netmask is 24 bits)
+
+Identifying network devices
+
+lspci (pci devices known to linux kernel)
+ifconfig
+ifconfig eno16777736 (only info specific to that interface)
+
+default gateway is necessary to transmit packets outside of the LAN
+
+route (shows kernel IP routing table)
+route -n shows actual IP address of gateway
+route add -net 200.1.1.0 netmask 255.255.255.0 gw 192.168.1.2 dev eth0
+
+cat /etc/resolv.conf (shows the DNS server)
+--------------------------------------------------------------------------------------------------
+Configuring network parameters for a Host
+
+ifconfig (to get interface name ... eth0)
+hostname (command to get our hostname)
+hostname server1 (to change hostname)
+cat /etc/resolv.conf
+ifconfig eth0 down (brings that network interface down)
+ifconfig eth0 up (brings that network interface up)
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+NMCLI SECTION
+
+##remember tab completion and nmcli [enter] will show options
+## main elements include
+	-add connection
+	-add gateway
+	-add dns
+## /etc/sysconfig/network-scripts (where the connections are)
+## you can add dns through resolv.conf but should do through nmcli
+## /etc/sysconfig/network-scripts (vim to ifcfg-[whatever the name is])
+## notional network interfaces named red1 and red2
+
+ip a (to show all connections)
+nmcli and just hit enter to show options
+nmcli con show (shows active connections)
+nmcli con add con-name red1 ifname enp0s3 type ethernet ip4 192.168.1.30/24  (adding a connection ip4/ modify ipv4)
+nmcli con down red1
+nmcli con up red1
+nmcli con mod "red1" ipv4.gateway 192.168.1.1 (if you want to add gateway note:ipv4 and not ip4
+nmcli con down red1 / nmcli con up red1
+nmcli con mod "red1" ipv4.dns 192.168.1.1 (add dns)
+nmcli con mod "red1" +ipv4.dns 8.8.8.8 (add a second dns)
+## should show DNS1 and DNS2 in /etc/sysconfig/network-scripts/ifcfg-red1
+nmcli con down red1 / nmcli con up red1
+## now add a second connection
+nmcli con add con-name red2 ifname enp0s3 type ethernet ip4 192.168.1.31/24
+## add gateway and dns again for red2
+nmcli con down red1
+nmcli con up red2
+## might need to restart network if it doesn't work
+-----------------------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------------------
+CONFIGURING TIME SERVICE (CHRONYD and NTP)
+
+SERVER CONFIGURATION
+/etc/chrony.conf (edit to remove online source and time and fetch locally)
+1.  comment out ## line which has the rhel.pool.ntp...
+2.  local stratum 8 (gives a time hierarchy 1-15 / lower is more accurate
+3.  allow with ip address to allow NTP access from a local network
+4.  systemctl restart chronyd
+## 2 steps below just to verify what is being offered by the server
+5.  firewall-cmd --list-all
+6.  netstat -tulpn |grep chrony (shows what ip's service is being offered to)
+
+
+CLIENT CONFIGURATION
+1.  Get IP address of server (ip a)
+2.  vim /etc/chrony.conf
+3.  add the following below pool comment [server 192.168.3.234] (or whatever the server ip is)
+4.  systemctl restart chronyd
+5.  chronyc sources (shows which server/stratum/and samples)
+6.  make sure to check systemctl status chronyd to verify enabled and vendor preset enabled
+
+
+-----------------------------------------------------------------------------------------------------
+NTP (Network Time Protocol)
+
+Network Time Protocol (ntp)
+
+date
+cat /etc/services | grep ntp
+ntpdate pool.ntp.org (only a one time synchronization)
+
+cat /etc/ntp.conf |less  (config file used by ntp daemon)
+
+service ntpd start
+service ntpd status
+systemctl enable ntpd.service
+
+ntpq (interactive command prompt for ntp)
+ntpq>peers (asterisk one is current time source)
+exit
+
+ntpq -pn (gives actual current time source without having to go into ntpq interactive command prompt)
+-----------------------------------------------------------
+
+Common Network Situation
+
+Browser won't connect
+ifcfg (check ip and netmask)(default gateway and router need to be on same network)
+ping www.redhat.com (if name resolves to ip then it's not dns issue)
+route -n
+ping gateway (gateway was incorrect in this example)
+route del default
+route add default gw 192.168.1.1 dev eth0
+route -n or ip route
+___________________________________
+Log Files
+
+/var/log
+
+lastlog (command to view last few logins)
+
+systemd logs
+/run/log/journal (journal daemon creates a volatile log here but can't be read with text editor) must use journalctl
+
+journalctl
+
+find / -name "*.log" (to search for other logs in other places on the filesystem)
+
+_____________________________________________________________
+
+Analyzing and reviewing logs
+
+cat messages |grep error (also pay attention to date and time stamp)
+
+/var/log
+lastlog | grep -v Never (takes out all daemons who never login)
+lastlog -t 5 (logins from last 5 days)
+lastlog -u jmunos (last login from that user)
+dmesg (log messages generated by the kernel / useful for troubleshooting devices)
+dmesg --level=err
+dmesg | grep -i bluetooth
+
+SystemD Logs
+
+ls /run/log/journal/ ... /system.journal (by default reset everytime computer is restarted)
+cat /etc/systemd/journald.conf (the journald config file if you want to keep through shutdowns)
+service systemd-journald status (to verify the journald is running)
+journalctl -r (reverse order or newest entries at the top)
+journalctl --disk-usage (amount of space the journal is taking up)
+journalctl --since "14:00" (entries since 2 pm)
+journalctl --since yesterday
+
+JournalD with syslog
+cat /etc/systemd/journald.conf
+	change storage=persistent (would keep through reboots)
+journalctl -b -p err (shows only error messages since last bootup)
+
+vi /etc/systemd/journald.conf (to configure log forwarding to syslog)
+remove comment in front of #ForwardToSysLog=yes
+remove comment in front of #MaxLevelSyslog=debug and change debug to warn (means any messages at warn level or below get forwarded)
+make sure syslog daemon is running
+	service rsyslog status
+________________________________________________________________
+Storing and Archiving Logs
+
+ls /var/log (most logs stored in here)
+cat /etc/logrotate.conf (very general log rotation settings)
+ls /etc/logrotate.d
+cat /etc/logrotate.d/yum
+	{
+		compress
+		daily
+		size 100
+		dateext
+		create 660 jmunos helpdesk
+}
+
+can force logrotation
+logrotate -fv /etc/logrotate.d/sample (forces and verbose)
+ls -l /var/log/mess*
+_____________________________________________________
+Controlling what is logged
+
+vi /etc/rsyslog.conf (scroll down to RULES)
+
+add a rule
+local4.*				/var/log/local4.log (can call it whatever)
+service rsyslog restart
+service rsyslog status
+
+logger "Hello World" (command line tool to send messages to syslog)
+logger -p local4.info "Hello again World" (-p is priority)
+ls /var/log
+_____________________________________________________
+Changing Logs and Log settings (mainly log rotation)
+
+cat /etc/logrotate.conf | less
+
+ls /etc/logrotate.d
+cat /etc/logrotate.d/syslog
+vi /etc/logrotate.d/syslog
+
+	insert # in front of /var/log/messages and save
+
+vi /etc/logrotate.d/messages
+
+	/var/log/messages
+	{
+		rotate 5
+		size 50k
+		create 660 root root
+		compress
+		dateext
+
+	}
+
+we changed the settings for the main system log file
+_________________________________________________________________
+
+
+
+
+
+
+
+
+
+
+ss -tuna4 (ss command replaces old netstat and can show all listening and nonlistening TCP and UDP sockets) (-a shows all network sockets -4 using IPv4 -t TCP and -u UDP protocols in the -n numeric format additionally -p switch will show the PID of the process using each socket)
+
+
+
+_____________________________________________________________
+Security Options
+
+Basic File Permissions
+Access Control Lists (ACL's)
+Firewall Control
+Secure Shell Server (SSH)
+SELinux
+	Enforcing and Permissive modes
+	List and Identify SELinux file and process controls
+ 	Restore default file contexts
+	Use boolean settings to modify system SELInux settings
+	Diagnose and address routine SELinux policy violations
+
+______________________________________________________________
+Virtualization
+
+Verifying packages installed
+
+yum list installed *kvm* (to verify any packages already installed)
+yum list installed *virt*
+
+Configuring Virtualization Tools
+
+virsh help | more
+man virsh
+/etc/libvirt/qemu.conf (configuration file for virtualization host)
+service libvirtd status (virtualization daemon)
+
+RHEL 7 as a virtualized guest
+
+Command Line Install
+
+man virt-install
+virt-install --ram 2048 --name rhel7.0-2 --disk path=/vm_disks/webserv2.img,size=8 --network network:default --cdrom /software/rhel-server-7.1-x86_64-dvd.iso
+
+
+virsh list (to list all virtual machines and their state
+virsh list --all (list all virtual machines even if they are not running)
+virsh edit nameofmachine (to edit xml config file)
+virsh autostart nameofmachine (to autostart it at boot)
+virsh autostart --disable nameofmachine (to disable autostart at boot)
+virsh dominfo nameofmachine (to verify autostart status)
+virsh domstate nameofmachine
+virsh domiflist nameofmachine (view interface,type,source,model and MAC)
+virsh screenshot nameofmachine (saves screenshot in home directory)
+virsh dumpxml nameofmachine (to get a dump of configuration)
+virsh start nameofmachine
+virsh shutdown nameofmachine
+virsh destroy nameofmachine (not a graceful shutdown)
+virsh dominfo rhel 7.0 (get UUID, state, CPU number and RAM, etc)
+virsh setmem nameofmachone 1000000 (number is amount of ram)
+virsh snapshot-create nameofrunningmachine
+virsh console nameofmachine (to connect to the virtual machine as a console // ^] to exit)
+Using a mouse in gui - Applications-System Tools-Virtual Machine Manager (to connect in a gui)
+virsh start rhel7.0 --console --force-boot (fresh boot)
+virt-top (top for virtual machines)
+virsh undefine <nameofmachine> ## add --nvram flag if needed
+
+Detecting Virtual Machine Problems
+
+virsh edit nameofmachine
+
+search for devices (/devices in vim)
+
+add pvpanic to xml config file for virtual machine:
+<devices>
+   <panic>
+	<address type='isa' iobase='0x505'/>
+   <panic>
+______________________________________________
+sVirt to protect guests
+
+(sVirt is secure virtualization is part of SELinux to prevent interaction between running virtual machines)
+
+getenforce (what mode is SELinux in)
+cat /etc/sysconfig/selinux
+
+virsh dumpxml rhel7.0 | grep label
+go to virtual hard disk location and run:
+ls -laZ ( c900 example labeling called category labeling which should match on disk and virsh dumpxml)
+
+___________________________________________________________________
+Kickstart
+
+anaconda-ks.cfg
+
+dracut (creates and initial image to preload disk devices - raid,scsi,ide, etc.)
+	dracut is a low-level tool for generating an initramfs image
+
+yum install *dracut*
+modify grub.cfg
+	add rdshell as a kernel parameter
+	dmesg | grep dracut
+
+______________________________
+Setting Keyboard
+
+localectl status (to see keyboard layout)
+localectl list-keymaps | grep french
+localectl set-keymap cm-french
+localectl set-x11-keymap cm-french (graphical environment keymap)
+______________________________________________
+Advanced Shell
+
+(example of piping, sorting and squeezing)
+
+ifconfig enp0s8 | grep "inet" | grep -v "inet6"| tr -s " " ":" |cut -f3 -d ":"  (tr means translate and -s squeezes out spaces / -d ":" is just telling the command what the delimiter is
+
+Filename Globbing
+
+ls *201[34]*  (will list all file with 2013 or 2014
+ls [East,West]* (all files with East or West in them)
+ls *{2013..2015} (all files in a range)
+ls [HC][A-Z][0-9]???
+
+Switching Shell and Users
+su root
+
+
+____________________________________________________________________________________________
+SELINUX
+
+Principle of least priviledge
+Sandboxing or isolation
+Policies enforced against subjects like:
+	Files
+	Processes
+	Ports
+	Devices
+
+Everything receives a label or (security context)
+	View Label is Z
+	ls -Z
+	ps -Z
+	netstat -Z
+
+Three modes
+	Enforcing (default)
+	Permissive (does still log actions that would have been denied audit.log)
+	Disabled
+
+Three polices
+	Targeted (default)
+	Minimum (can select a subset of items like processes to have policies applied)
+	Multi-Level Security (MLS) - where you might have multiple category groups only allowed to access specifically 	labeled things
+
+yum install -y selinux-policy-devel (not installed by default)
+sepolicy manpage -a -p /user/share/man/man8
+mandb (to update man database with selinux manpages)
+E.g. man httpd_selinux
+
+
+_________________________
+Configuring SELinux Mode
+
+sestatus -v (view all info about SELinux)
+getenforce (shows which mode currently in)
+setenforce  (to change while machine is running)
+setenforce 0 (will change to permissive mode)
+setenforce 1 (will set enforcing mode)
+
+/etc/sysconfig/selinux (where to make permanent changes to selinux)
+
+Boolean control over SELinux (easiest)
+getsebool -a | more (essentially a bunch of on/off switches)
+getsebool -a | grep ftp (may want to grep to narrow down)
+setsebool -P      (P flag makes it persistent through reboot)
+	example: for ftpd_anon_write
+setsebool -P ftpd_anon_write on
+getsebool -a | grep ftp (to check your work)
+
+you can also view (don't modify this file though) the selinux booleans in:
+/etc/selinux/targeted/modules/active/booleans.local
+
+SELinux User Contexts
+
+Four Components (do an ls -Z to see)
+	1. SELinux user (in ls -Z unconfined_u)
+	2. SELinux role (object_r)
+	3. Type (default_t)
+	4. Sensitivity/Category (s0)
+
+SELinux user is not the same as Linux user
+SELinux user accounts get associated with regular Linux accounts.  Goal is to limit which SELinux roles can be used.
+
+semanage login -l (shows Linux user account mapping to SELinux user)
+seinfo -adomain -u (shows SELinux user accounts available in this system)
+semanage user -l (shows SELinux Roles associated with each of the SELinux users)
+semanage login -a -s staff_u jmunos (to associate a user account with an SELinux user / -a is add and -s) The whole purpose is so that items can be labeled -such as files in the filesystem- to be associated with that Linux user.  Note: Linux users get mapped to ONE SELinux user but SELinux users can have more than one role assigned.
+
+Look at:
+ls -Z
+netstat -Z
+id -Z (info about user currently logged in)
+ps -axZ | grep sshd
+
+Change the SELinux user for a file PhoneCallLog
+chcon -u staff_u PhoneCallLog
+
+View the security context for processes
+netstat -Z | grep ssh
+
+Using SELinux Process Contexts
+
+ps -axZ (Z shows the process context (or security label)
+ps -axZ | grep http (security label is httpd_t) but...
+ls -ldZ /var/www/html (-d flag for directory and shows a different label than httpd daemon so--you would think the httpd service would be unable to access the proper files
+but it can.  Look at man httpd_selinux
+
+man httpd_selinux (explains associated security fileable contexts that http daemon or httpd_t type can associate with.
+
+now ls the following:
+ls -lZ /var/www/html and look at the index.html file it is flagged as httpd_sys_rw_content_t so it works
+
+now do the following to change the context(user_home_t) to the index.html and see what happens
+chcon -t user_home_t index.html
+ls -Z
+if we try and open up the index.html in firefox it doesn't work
+to restore context type:
+
+restorecon index.html (it refers to the SELinux policy rules in the database and changes the context back to what it should be for that location in the filesystem.
+
+semanage port -l | grep http (shows which ports the httpd is allowed to communicate on)
+
+___________________________________________________________
+SELinux Restoring Contexts
+
+Example: In the /root/Documents folder type ls -Z and you can see a file called corp_vpn_policy_2.txt (may not be on mine)
+type is admin_home_t
+now move the file to /var/www/html (it takes it's type label with it - however if you copy it inheritbs the security label from the html folder)
+it still works.  The whole point to SELinux is that it restricts this sort of thing.
+getenforce (shows permissive)...and logs policy violations to /var/log/audit/audit.log
+setenforce 1
+now try the same thing --  doesn't work because SELinux prevents it
+
+So...you might try and troubleshoot with chmod permissions if you didn't know it was an SELinux issue
+To make it work use restorecon -vR /var/www/html (-v is verbose and -R is recursive)
+
+___________________________________________________________
+Using SELinux Roles (used the most in mls (multi-level security protection)
+
+Linux user account can be mapped to an SELinux account which can be mapped to one or more roles.
+Roles control access or interactions
+
+semanage -l (shows SELinux users and roles)
+semanage login -l (shows Linux user account mapping)
+seinfo -adomain -r (shows roles available)
+	user_r (basic users - nonroot type of things)
+	staff_r
+	sysadm_r
+	system_r (
+
+ls -Z (you can see that the role in the filesystem is always set to object_r (really a placeholder)
+
+______________________________________________________________
+Recognizing SELinux Policies
+
+Default is targeted (this mean targeted process running in the os, also called domains, run in their own isolated area)
+MLS or Multi Level Security uses different levels of security clearances to control access
+
+sestatus -v (info which includes current loaded policy and should match a cat of /etc/sysconfig/selinux)
+semanage module -l (will list modules available with current policy)
+semanage login -l (shows mappings between users in Linux and users in SELinux)
+semanage port -l | grep ftp
+getsebool -a (list of Booleans available)
+getsebool -a | wc (shows how many Booleans available)
+seinfo (general info about SELinux)
+_______________________________________________________________
+Configure SELinux Policy
+
+Default policy is targeted (confirm by cat /etc/sysconfig/selinux)
+
+3 Types of Policy
+	Targeted (certain processes are protected)
+	Minimum (a subset of targeted -- only selected processes are protected)
+	MLS
+
+Minimum
+	Not all the policy modules are running unlike targeted
+	To list the policy modules running type:
+semanage module -l | more
+
+Tools to adjust rules and settings within policy
+
+getsebool -a
+
+Example: We don't want anonymous users writing to the FTP host
+
+getsebool -a | grep ftp
+setsebool -P ftpd_anon_write off
+
+Example: We can also make changes to port or port usage, that daemons are allowed to bind to
+semanage port -l | grep ftp (shows port 20,21,989,990)
+we want to add port 30
+semanage port -a -t ftp_data_port_t -p tcp 30
+
+Example: Configure policy by changing what is allowed to be accessed in the filesystem
+I'm adding content to a website on the root in /website
+semanage fcontext -a -t httpd_sys_content_t "/website(/.*)?"
+	now to restore context to apply the changes
+restorecon -vR /website
+now do ls -Z /website (you can see appropriate label for access by Apache Web server)
+
+_________________________________________________________
+Adding a Rule to a Policy
+
+Scenario is you are unable to connect to a webserver 192.168.1.241 in firefox
+
+To begin troubleshooting connect to the web server itself:
+systemctl status httpd.service
+	says it could not make a socket connection to port 90
+
+Open up the config file for the website /etc/httpd/conf and it shows that it is trying to listen on port 90
+It should work but it's not.  Why? SELinux
+
+semanage port -l | grep http
+semanage port -a -t http_port_t -p tcp 90
+semanage port -l |grep http (should now show port 90 in the list)
+systemctl start httpd.service
+go to firefox and adjust address to 192.168.1.241:90 (port 90 on the end)
+__________________________________________________________________________
+Using Booleans to add a rule to policy
+
+getsebool -a | grep http
+
+we want to add the ability for the http webserver to connect to a db like MySQL
+httpd_can_network_connect_db (the boolean that we're interested in)
+setsebool -P httpd_can_network_connect_db on
+
+_______________________________________________________________________
+Dealing with an SELinux Policy Violation
+
+Scenario is an http config set up on port 90 and service failed error -- permission denied
+systemctl status httpd.service (shows you the socket 90 issue)
+Take a look at the last few lines of /var/log/audit/audit.log
+tail /var/log/audit/audit.log
+
+another place to look for SELinux policy violations is:
+/var/log/messages (the standard linux log file)
+tail /var/log/messages (tells you it's the same diagnosis as before)
+semanage port -a -t http_port_t -p tcp 90
+systemctl start httpd.service
+
+______________________________________________________________________
+Using SELinux to Secure a Network Service
+
+One way to secure a network service is to limit the ports it can listen on or limit file types it's allowed to access in the filesystem.
+
+ps -axZ | http
+ls -ldZ /var/www/html
+
+Example is preventing the HTTP web server from being allowed to bind to port 80 (http_port_t) and reassign it to unreserved_port_t
+
+semanage port -m -t unreserved_port_t -p tcp 80
+semanage port -l | grep unreserved
+	now
+
+_____________________________________________________________________
+Memory, Process and Permission Troubleshooting
+
+cat /proc/meminfo | more
+
+free -m
+top
+
+to check which services start at boot and consume memory:
+systemctl list-unit-files | grep enabled
+
+to test for physical memory problems boot from install image and highlight the trouble
+shooting option from the boot menu -- there you can run a memory test.
+
+Memory and CPU intensive processes
+
+top
+service sshd status (you can get the PID from here)
+ps aux | grep sshd (you can get PID)
+
+kill PID (graceful)
+kill -9 PID (forceful)
+
+make sure offending process doesn't start up automatically
+systemctl list-unit-files --type service
+systemctl disable sshd.service
+_______________________________________________________________
+Troubleshooting File Permission Issues
+
+Scenario
+cblackwell shows only read access to file1 file2 file3 but if you look at the directory permissions:
+ls -ld (everyone has rwx)  --so we need to set the stickybit on the subdirectory
+stickybit (means that only the owner of a file and root can delete files in that location)
+chmod o+t /sharedfiles/
+
+Scenario
+cblackwell can't get into /projectfiles/ folder
+ls -ld shows that they don't have execute permission and you must have execute permission to enter a folder
+chmod +x /projectfiles/ (gives execute across the board)
+
+scenario
+cblackwell can't execute a script
+read and execute are required to execute a script
+chmod +x /scripts/script1.sh
+
+scenario (can also use find command for permission troubleshooting)
+find / -name "*.sh" ! -perm /111 (this means find scripts starting from the root of the filesystem that end with .sh
+where the permission is not(!) set to 111 --or essentially scripts that no one can execute
+_____________________________________________________________________________
+Identifying File Permission Security Issues
+
+switch to regular user
+ls /sharedfiles
+rm file1 --it's successful cause everyone has rwx for the folder /sharedfiles
+need rx to get into a directory
+need rx on a script to run a script
+_____________________________________________________________________________
+Troubleshooting Network Issues
+
+ping (known address/default gateway/router)
+ifconfig (verify that interfaces are up and running and have an ip address)
+lspci (correct driver for network card)
+lsmod | grep -i ^e (current modules loaded in memory grepped for e...ethernet)
+modinfo e1000 (or whatever was listed in lsmod)
+ifup eth0
+ifconfig (to verify ip)
+route
+look at /etc/resolv.conf (contains DNS addresses)
+cat /etc/sysconfig/network-scripts/ifcfg-eth0
+_____________________________________________________________________________
+Troubleshooting Locked Files
+
+lsof | more  (list open files)
+lsof -u jmunos | grep -v mem (to remove memory mapped files)
+
+Identifying processes that are using specific files (releasing a port)
+
+fuser -v -n tcp 22 (-v is for verbose -n for numeric port listing on TCP port 22)
+____________________________________________________________________________
+Troubleshoot and repair filesystems
+
+Most filesystems needing repair require the filesystem to be unmounted
+
+Example:  try to mount /dev/sdd1 /mnt
+It returns an error so to look at an xfs filesystem
+
+xfs_repair -n /dev/sdd1  (-n means don't actually repair yet but see if the Primary superblock has an issue //it tries to find the primary and secondary superblock)
+xfs_repair -v /dev/sdd1 (this will actually perform the repair and be verbose -v)
+
+If you want to dump the metadata from filesystem
+xfs_metadump /dev/sdd1 /dumpfile_xfs (dumps the filesystem metadata into the root folder)
+xfs_admin -L "userfiles" /dev/sdd1 (to set a label on a filesystem)
+mount -L userfiles /mnt
+
+fsck -n /dev/sdd1  (-n flag says not to correct the errors yet)
+fsck -y /dev/sdd1 (-y flag says yes to each error to correct)
+mount /dev/sdd1 /mnt (looks good)
+
+Debugging a filesystem issue
+
+xfs_db /dev/sdd1 (won't work if mounted unless -r read only flag)
+xfs_db -r /dev/sdd1 (opens an interactive shell)
+xfs_db>help
+>uuid
+>check
+>frag (shows fragmentations of the filesystem)
+>q (for quit)
+
+umount /dev/sdd1
+xfs_repair /dev/sdd1
+
+xfs (then hit tab twice to bring up options)
+xfsdump (good command if you have a troubled filesystem and want to take a backup)
+
+Dealing with failed drives
+
+Scenario: You're in emergency mode and it says you can type
+
+journalctl -xb (to look at logs)
+/ (and then search for fail) or...
+
+cat /var/log/messages | grep fail (the main system log file)
+The last entry shows a disk failure sdc1 in a raid1 array
+
+mdadm --detail /dev/md1  (identifies the culprit)
+mdadm -r /dev/md1 (to remove the failed device)
+
+mount
+_______________________________________________________________________-
+Using the Red Hat Rescue Environment
+
+When something happens like disk corruption or immediately after installation with no raid driver, something
+may prevent the system from booting Linux from the hard disk.
+
+Need an alternative way to boot
+RHel 7.1 install DVD
+DVD Iso on usb stick
+
+Down arrow key on menu on troubleshooting
+Select Rescue a Red Hat Enterprise Linux system
+Basic graphics menu will pop up and will try to mount the filesystem in /mnt/sysimage
+You are now root but if you type ls / you will see a mounted filesystem.
+The filesystem is the rescue environment filesystem.-- Our root filesytem is mounted under /mnt/sysimage
+
+chroot /mnt/sysimage to make that our current root filesystem
+
+we can now modify anything in the filesystem
+also, if we need to repair /boot
+
+mount
+unmount /dev/sda (or whatever device the /boot filesystem is mounted on)
+xfs_repair /dev/sda1
+
+ifconfig to check network access (you have it in rescue mode)
+___________________________
+Exercise
+	Set to enforcing
+getenforce
+setenforce 1
+getenforce
+	Change access port to http 90
+semanage port -l | grep http
+semanage port -a -t httpd_port_t -p tcp 90
+	Allow http to acces db
+getsebool -a | grep db
+setsebool -P httpd_can_network_connect_db on
+	List top 3 memory and cpu processes
+ps aux | sort -k 3
+	Disk issue
+xfs_repair /dev/sdd1
+umount /dev/sdd1
+xfs_repair -v /dev/sdd1
+	How much swap space available
+cat /proc/meminfo | grep -i swap
+
+_________________________________________________________________________________
+File systems and Device Management
+
+creating filesystems
+
+partition
+fdisk /dev/sdb (p to print, n for new, w to write changes)
+
+format
+mkfs -t ext4 /dev/sdb1
+
+mount /dev/sdb1 /mnt (to check it and make sure it works)
+
+set it to automount
+/etc/fstab
+
+/dev/sdb1	/mnt 	ext4	defaults	0 0
+____________________________
+Using MBR Disks
+	Max of 4 partitions and 2 TB in size vs. GPT 128 partitions
+
+Changing a filesystem label
+
+e2label /dev/sdb1 (this will show the label if there is one)
+e2label /dev/sdb1 slappydrive (gives it whatever label you want)
+
+You can use the label in mounting and automounting
+mount -L slappydrive /mnt
+
+FSTAB entry using label
+
+LABEL=slappydrive	/mnt	ext4	defaults	0 0
+
+then run mount -a (to check)
+______________________________________________________________________
+Mounting and Using iSCSI Devices
+(iSCSI transmits disk I/O commands over IP insted of locally through the storage bus)
+(an appliance or server that hosts disk space that we connect to through the iSCSI client called iSCSI Initiator)
+To configure the iSCSI initiator open:
+
+vi /etc/iscsi/iscsid.conf
+(we might have to turn on authentication method called CHAP (Challenge Handshake Authentication Protocol)
+
+forgetting CHAP now we need to discover iSCSI device available
+
+iscsiadm --mode discovery --type sendtargets --portal 192.168.1.240
+IQN number returned in the above query is important - then use it and type:
+
+iscsiadm --mode node --targetname iqn.2015-06.com.example:target1 --portal 192.168.1.240 --login
+iscsiadm -m session -o show
+lsblk --scsi
+now you can mount and use fdisk or make a filesystem like a disk attached locally
+
+to automount iscsi
+
+blkid (to get uuid number)
+vi /etc/fstab
+
+UUID=45kj46kj76-kj354k-j3jh45-ca7	/mnt	ext4	defaults  0 0
+________________________________________________________________________
+Using GPT Disks
+(GUID partition table = GPT) (newer 64bit partitioning that uses gdisk instead of fdisk)
+
+gdisk -l /dev/sdc
+gdisk /dev/sdc
+p (print any partitions)
+n (new)
+enter for defaults
+w (to write)
+
+mkfs just like with MBR type
+__________________________________________________________________________
+Using and Compressing Swap partitions
+
+Lets make a swap in the root filesystem
+
+dd if=/dev/zero of=/swapfile bs=1024 count=524288 (this is if you want a 512MB swap 1024 times 512)
+mkswap /swapfile
+chmod 0600 /swapfile
+swapon /swapfile
+
+to automount swapfile
+/etc/fstab
+
+/swapfile	swap	swap	defaults	0 0
+
+now to enable compression or zswap which redhat does to avoid having to use disk swap
+/etc/default/grub and add:
+zswap.enabled=1" to the end of the GRUB_CMDLINE_LINUX=
+
+now you have to rebuild grub
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+after reboot you can check with
+cat /sys/kernel/debug/zswap/stored_pages
+
+Identifying File Systems
+
+CLI
+mount
+mount | grep " / "
+mount | grep /dev/sd
+mount | grep /dev/sr0 (cd or dvd)
+mount | grep cifs (samba shares)
+mount | grep nfs (NFS shares / Network File System)
+GUI - Utilities - Disks
+
+Mounting and Unmounting
+
+mount (by itself gives all current mount points on the system)
+man mount (then / search such as /-a )
+
+examples:
+1. mount /dev/sdb1 /shared
+
+Mounting remote filesystems
+1. mkdir /smb_mnt
+2. mount -t cifs //rhel1/UserFiles /smb_mnt/
+enter password
+
+umount /dev/sdb1 --or--
+umount /shared (you can refer to device or mount folder)
+
+Mounting a Filestystem at Boot
+
+e2label /dev/sdb1 (shows the label of the device)
+Webdata
+mount -L Webdata /tmpmount
+
+vi /etc/fstab
+LABEL=WebData /tmpmount ext4 defaults 0 0
+mount -a
+
+
+Mounting or Unmounting of Filesystems or Devices (AutoFS)
+
+cat /etc/auto.master (he's already added a /removable folder on root and added the following
+section to /etc/auto.master)(also /etc/auto.ext-usb is another file that automates the mounting of external USB devices)
+
+/removable	/etc/auto.ext-usb	--timeout=10
+
+cat /etc/auto.ext-usb
+
+ext_usb1	-fstype=auto	:/dev/sdc1
+
+so if a usb device is inserted as /dev/sdc1 it will be automounted to /removable/ext_usb1
+_________________________________________________________________________________________________
+Adding Partitions Non-Destructively (or not destroying data on existing partitions)
+
+example is /dev/sdb1 mounted on /mnt
+
+mount |grep /mnt
+df -H /mnt (shows 47M used of 22G or 1% used)
+
+fdisk /dev/sdb and trying to add a partition does not work because all space is allocated)
+umount /mnt
+
+e2fsck -f /dev/sdb1 (to make sure everything is ok)
+resize2fs /dev/sdb1 5G (to reduce the size to 5 GBs)
+
+Now this part is strange because you are going to delete the partition you just resized and recreate it smaller
+
+fdisk /dev/sdb
+d (to delete the partition)
+w (to write the change)
+fdisk /dev/sdb
+n (to make a new partition)
+enter (for default primary partition)
+enter (for default 1st partition)
++5G (for 5 GB size)
+w (to write changes)
+
+mount /dev/sdb1 /mnt
+ls /mnt
+df -H /mnt (now shows the smaller size)
+
+fdisk /dev/sdb
+p (to print and see partitions)
+n (for new partition)
+pick defaults to use the rest of the drive for second partition
+w (write changes)
+
+fdisk -l /dev/sdb (you can now see 2 new partitions)
+______________________________________________________________________________________
+Using an Encrypted Filesystem
+
+RedHat uses LUKS (Linux Unified Key Setup) for filesystem encryption and its AES 256 bit
+Works well for USB sticks and laptops
+
+CLI
+cryptsetup -v luksFormat /dev/sdb1 (it'll tell you that everything will be wiped in that partition and ask for a passphrase --you cannot lose this!)
+
+Now initialize the partition and map it to a specialname
+
+cryptsetup luksOpen /dev/sdb1 slappyvault
+you'll be asked to enter passphrase:
+
+cryptsetup -v status slappyvault (to verify mapping is active)
+
+now make a filesystem so you can actually store files on the partition
+mkfs.ext4 /dev/mapper/slappyvault
+mount /dev/mapper/slappyvault /data (or wherever you want to mount it)
+
+Mounting the Encrypted Filesystem at BOOT (2 steps// 1.crypttab 2.fstab)
+
+vi /etc/crypttab
+starting at left side on an empty line
+
+slappyvault	/dev/sdb1	none	luks
+
+vi /etc/fstab
+at bottom
+
+/dev/mapper/slappyvault		/data	ext4	defaults 0 0
+_______________________________________________________________________________________
+Logical Volume Management (LVM)- Lets you group physical disk space together in a volume group.
+				 Then from the volume group you can build logical volumes.
+
+Command Reference
+
+pvcreate	create a physical volume
+pvdisplay 	display the attributes of physical volumes
+vgcreate	create a volume group
+lvs		used to list existing logical volumes
+lvcreate	used to create a logical volume
+lvextend	used to add space to a logical volume
+lvmdiskscan	used to search for all devices in LVM
+vgdisplay	used to display volume group information
+
+
+lvm (type at the command prompt to go into lvm shell)
+lvm>help (brings up a list of commands)
+
+
+Layers
+Physical Disk (prep each disk or partition with fdisk and with (t) set type to Linux LVM (hex code 8e)
+Physical Volume (pvcreate -v /dev/sdb1 /dev/sdc1) then lsblk to see it
+Volume Group (vgcreate -s 5G vg1 /dev/sdb1)
+vgextend vg1 /dev/sdc1 (to extend the volume if you want)
+vgdisplay vg1 (to check and verify 10G total size)
+
+
+Volume Group (vg) brings together physical disk space for one or more hard disks into one unit.
+After a Volume Group is created, you can then proceed to build logical volumes.
+
+
+
+fdisk -l /dev/sda (look for the Linux LVM flag)
+fdisk -l /dev/sdb (look for the Linux LVM flag)
+pvdisplay | more (physical volume display which shows which disks are allocated for LV)
+VG Name in pvdisplay shows that these drives are in vg1 (a volume group)
+ls /dev/vg1 (when you build a volume group it creates a device mapping under /dev)
+in this example ls /dev/vg1 shows lv1 and lv2 (the two logical volumes that make up vg1)
+lvdisplay
+
+To build a logical volume from a volume group
+
+lvcreate -L 5G -n archive vg1 -v
+lvs (to get status of logical volumes)
+
+To extend the size of the volume
+
+lvextend --size +4G /dev/vg1/archive
+lvdisplay vg1 (to verify the new logical volume is extended)
+now to format the volume to use
+mkfs -t ext4 /dev/vg1/archive
+now you can mount
+mount /dev/vg1/archive /mnt
+umount /mnt (if you want to unmount)
+lvremove /dev/vg1/archive (if you want to remove the logical volume)
+
+Thin Provisioning
+
+Allows us to create multiple logical volumes, whose total size exceeds the size of the underlying volume group.
+
+example:
+vgdisplay vg1
+
+10G volume group called vg1 and now create thin provisioning pool:
+
+lvcreate -L 9G -T vg1/thinpool (-T is for thin provisioning and vg1 is the volume group to put your named thin provision)
+
+Now you can create logical volumes on that pool where the total can exceed 9G
+
+lvcreate -v 9G -T vg1/thinpool -n lv1 (-v is virtual size)
+lvcreate -v 9G -T vg1/thinpool -n lv2 (-v is virtual size)
+
+lvdisplay vg1
+	(this will show the volume group and the two logical volumes -- each logical volume shows 9G and can grow as
+	necessary.  The total size can't grow beyond 9G though)
+__________________________________________________________________
+Hybrid Volumes (Mixture of SSD and Regular Hard drives)
+
+Example to add and SSD to an existing volume group with traditional drives as a cache
+
+assume**/dev/sdb is an SSD** and vg1 already exists as a volume group
+
+pvcreate /dev/sdb
+vgextend vg1 /dev/sdb
+lvcreate -type cache -L 50G -n lv1 vg1 /dev/sdb  (cache helps put frequently used data on the SSD /dev/sdb)
+___________________________________________________________________
+Making a Volume Snapshot (Of a logical volume!)
+-they don't use much space
+-are read/writable
+-can be used to make a backup or for testing
+
+Example:
+assumption is a logical volume called archive in a volume group vg1 thats 4G in size
+
+lvs (to list logical volumes)
+lvcreate -L 500M -s -n archive_snap /dev/vg1/archive
+lvs (to verify that it was created)
+assume we want to add another 500MB to the snapshot
+lvextend -L +500M /dev/vg1/archive_snap
+lvs (to verify that it is now 1G)
+	also--you can even mount snapshots
+mount /dev/vg1/archive_snap /mnt
+ls /mnt (to see the contents at the time of the snapshot)
+umount /mnt
+	if you want to remove the logical volume
+lvremove /dev/vg1/archive_snap
+lvs (to verify removal)
+_______________________________________________________________________
+Backing up Volumes (using tar)
+
+lvs (to view logical volumes --example here is one called archive in vg1 with a snapshot called archive_snap)
+mount the archive_snap logical volume by:
+mount /dev/vg1/archive_snap /mnt (using the snapshot as the source for the backup)
+cd /mnt
+tar -cvzf /Backup/archive_lv.tar.gz *
+_______________________________________________________________________
+Backing up Volumes (using dd -disk dump-)
+dd if=/dev/vg1/archive_snap of=/Backup/archive_lv.dd
+_______________________________________________________________________
+Restoring Volumes (tar.gz)
+
+mount /dev/vg1/archive /mnt
+cd /mnt
+tar -xzvf /Backup/archive_lv.tar.gz
+
+Restoring Volumes (dd)
+dd if=/Backup/archive_lv.dd of=/dev/vg1/archive
+____________________________________________________________________
+Basic RAID Volume
+
+RAID-1 (mirror)
+lsblk --scsi
+fdisk /dev/sdb (then do normal steps except type which is fd for linux raid)
+fdisk /dev/sdc (same as above)
+	now make both of these raid-1
+mdadm --create /dev/md1 --level=1 --raid-devices=2 /dev/sdb1 /dev/sdc1
+mdadm --detail /dev/md1
+cat /proc/mdstat
+mkfs -t ext4 /dev/md1
+mkdir /cust_trans
+mount /dev/md1 /cust_trans/
+vi /etc/fstab
+
+/dev/md1		/cust_trans	ext4 defaults	0 0
+umount /cust_trans/
+mount -a
+
+Growing a RAID Volume (new disk is /dev/sdd)
+
+mdadm --detail /dev/md1 (to be aware of it's current config)
+fdisk /dev/sdd (normal except t for type and then fd)
+mdadm /dev/md1 --add /dev/sdd1
+mdadm --grow --raid-devices=3 /dev/md1 (will get a raid devices degraded popup)
+mdadm --detail /dev/md1 (will show the rebuild status)
+cat /proc/mdstat
+
+_____________________________________________________________________
+LVM Exercise
+
+1. list all disks and filesystems on machine
+2. create an XFS filesystem on a partition
+3. configure an LVM volume mounted automatically on boot
+4. configure a RAID volume
+5. add additional swap space without rebooting
+
+1. 	lsblk, df -H and mount
+
+2. 	mkfs -t xfs /dev/sdb
+	mount /dev/sdb
+3.	pvcreate -v /dev/sdb1 /dev/sdc1
+	vgcreate -s 5G vg1 /dev/sdb1
+	mkfs -t ext4 /dev/vg1/userfiles
+	vi /etc/fstab /dev/vg1/userfiles	/mnt	xfs	defaults	0 0
+4.	fdisk /dev/sdb	(t) (fd)
+	fdisk /dev/sdc	(t) (fd)
+	mdadm --create /dev/md1 --level=1 --raid-devices=2 /dev/sdb1 /dev/sdc1
+	mount /dev/md1 /raid
+5.	fdisk /dev/sdc (8e)
+	mkswap
+_____________________________________________________________________________
+Advanced Networking
+_____________________________________________________________________________
+Running Network Services
+
+systemctl list-unit-files --type service (to get a list of all services and status)
+systemctl list-unit-files --type service | grep http (to look for specific service)
+systemctl enable httpd.service (to enable it for startup)
+service httpd start (starts it immediately)
+
+______________________________________________________________________________
+Configure DNS Server (Domain Name Server)
+
+yum list installed | grep bind (to see if components are installed)
+vi /etc/named.conf (main config file and reference to zone files)
+zone files are what house actual records to a record files
+cat /var/named/example.com.zone (a records for each site go in /var/named/...zone)
+systemctl enable named.service (to ensure DNS server starts on bootup)
+service named stop (to stop the DNS service)
+______________________________________________________________________________
+Configure a Basic DHCP Server
+
+yum list installed | grep dhcp
+vi /etc/dhcp/dhcpd.conf (main dhcp daemon config file)
+	86400 seconds is the default (24 hour lease)
+	subnet / netmask / option routers / option subnet-mask / option DNS / range
+service dhcpd start
+systemctl enable dhcpd.service
+you can test with a windows client (cmd prompt ipconfig /all  ipconfig /release ipconfig /renew)
+_______________________________________________________________________________
+Configuring a Basic NTPD Server (to ensure consistent time source)
+
+yum list installed | grep ntp
+cat /etc/ntp.conf | less
+ntpq -p (will list time servers and one with asterisk is the current time server)
+service ntpd status
+systemctl enable ntpd.service
+netstat -anu (udp port which is listening for clients) (consider firewall implications)
+	On a client below
+vi /etc/ntp.conf (this will allow NTP traffic through this interface below)
+	add a line that says
+	restrict 192.168.1.241 (whatever the local client IP address is)
+ntpq -p
+___________________________________________________________
+Using PTP for network time (considered more accurate that NTP)
+Uses UDP unicast and master/slave hierarchy
+yum install linux-ptp
+ptp41 (command to configure network card for software or hardware time stamping)
+phc2sys (command synchronizes the system clock to the hardware clock)
+pmc ptp management client(get and set)
+_______________________________________________________________________
+Configuring a logging server
+
+rsyslog is the mechanism for centralized logging
+1. vi /etc/rsyslog.conf (go down to modules section and uncomment $ModLoad imudp)
+this turns on UDP transport to receive messages.
+2. (then uncomment $UDPServerRun 514 which is the UDP port the server will listen on)
+3. (then go further down to Global Directives and create where to put log entries received)
+   $template RemoteHost, "/var/log/%HOSTNAME%/syslog.log"
+4. Go further down to RULES and Create a rule that captures certain types of log entries and refers to the RemoteHost template
+   *.* ?RemoteHost
+5. :wq and restart rsyslog
+6. service rsyslog restart
+
+Configuring the log forwarding client
+
+1.  vi /etc/rsyslog.conf
+2.  go down to rules and add
+    *.* @192.168.1.241:541 (this is the logging server ip / @ means connect to (if you add @@ is means TCP) UDP and port 514
+3.  :wq
+4.  service rsyslog restart
+
+_______________________________________________________________________________
+Configuring a Samba Server (to work with windows files and printers)
+
+yum list installed |grep samba
+vi /etc/samba/smb.conf
+	1. In the Global section workgroup = example
+	   server string = hostname
+	   netbios name = hostname
+
+	2.  :wq
+	3.  service smb restart
+	4. testparm
+set up encrypted passwords
+smbpasswd -a root (enter password but this does not have to match linux password)
+smbclient -L hostname(to list what is available)
+
+Setting up smb shares
+Make a folder to share like /Userfiles
+Now add to the bottom of  /etc/samba/smb.conf
+	[UserFiles]
+		comment = Shared User Files
+		path = /UserFiles/
+		writable = yes
+		public = no
+service smb restart
+getenforce
+semanage fcontext -a -t samba_share_t "/UserFiles(/.*)?"
+restorecon -vR /UserFiles
+_______________________________________________________________
+Configure a basic SSH Server
+
+Default is that SSH listens on TCP Port 22
+
+example SSH connection with a host called rhel1
+ssh
+_______________________________________________________________
+Traffic Control
+   to show any rules that are applied
+tc -s qdisc ls dev eth0 (-s is for stats / qdisc is queing discipline)
+tc qdisc add dev eth0 root netem delay 200ms (netem is network emulation --this is for slowing traffic by 200ms)
+tc qdisc del dev eth0 root (will remove any traffic control rules)
+_____________________________________________
+Firewall
+
+firewalld
+-uses the concept of zones which contain network interfaces, services, ports and rules
+
+firewall-cmd --zone=public --add-port=3128/tcp --permanent
+firewall-cmd --get-active-zones
+(to build a firewall rule within a zone)
+firewall-cmd --zone=trusted --add-port=443/tcp (adding a firewall rule for port 443)
+firewall-cmd --zone=trusted (list anything i've changed)
+firewall-cmd --zone=trusted --list-ports
+(to launch gui for firewall type:)
+firewall-config (or mouse to applications/sundry/firewall)
+
+THREE CHAINS
+INPUT
+FORWARD
+OUTPUT
+
+iptables (used to configure the firewall. -network packets are compared against rules in chains -if it matches the packet is sent to a target)
+iptables -F (to clear the firewall)
+iptables -L -v (to list firewall chains and rules)
+
+To create a policy to drop all inbound traffic
+iptables -P INPUT DROP (-P is policy / INPUT is for input traffic)
+
+To add a rule to allow web server traffic
+iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+
+To delete or remove a rule
+iptables -L (we want to remove the 1st rule in the chain so...)
+
+iptables -R INPUT 1
+
+SAVE and RESTORE iptable rulesets
+
+service iptables save
+cat /etc/sysconfig/iptables
+systemctl enable iptables
+
+USING a FIREWALL RULESET at BOOT
+
+firewall-config (gui)
+go to trusted /check dhcp dns ftp http https
+then options/Runtime to permanent
+___________________________________________________________________________
+Exercise for the following:
+	-Configure NTP client and set time via pool.ntp.org
+	-Display firewall rules from BASH for firewalld public zone
+	-Use iptables to allow inbound SSH traffic
+	-configure log server that records log messages from other hosts
+
+1. cat /etc/ntp.conf
+	service ntpd start
+	ntpq -p (to see time sources and look at asterisk)
+	service ntpd stop
+	ntpdate pool.ntp.org (one time update for host)
+2. firewall-cmd --zone=public --list-all
+	service firewalld start
+3. iptables -A INPUT -p tcp --deport 22 -j ACCEPT
+	iptables -L
+4. vi /etc/rsyslog.conf
+	$UDPServerRun 514
+	create a template in global
+	in Rules
+	ls /var/log (subdirectories for other network hosts)
+______________________________________________________________________
+Scripting and Scheduling
+
+Regular Expressions (a sequence of characters used to find a pattern)
+	Built using metacharacters
+	Wildcards
+		? means 0 or 1 of the previous element is required
+		* means 0 or more of the previous element is required
+		+ one or more of the previous element is required
+		. match a single character at that location
+	Anchors
+		^ hat sign will match the beginning of a string
+		$ dollar sign will match at the end of the string
+
+	Containers
+		parenthesis are used to group or contain sub-expressions
+		square brackets can be used to select a particular set of items
+	Miscellaneous
+		OR is a vertical bar(pipe symbol)
+		a backslash is used to excape the metacharacters or take away special meaning
+
+	Examples
+		c.t	matches any three letter word that starts with c and ends with t (cat and cut)
+		car?t	the r is optional, so cat and cart would both match
+		agg*hh*	matches agh as well as agghh or any number of g's and h's
+		ag+h+	same as above but more can follow
+		^Once	any sentence that start with "once"
+		[chs]at	matches cat hat and sat
+		123|321 matches 123 OR 321
+		$once	matches sentence that end with "once"
+
+GREP
+
+grep "jchavez" /etc/passwd
+ifconfig | grep "inet"
+grep "West" * (this will process every file in the current directory)
+grep "West" * | wc -l (line count with 9 lines with the occurence of West)
+
+ADVANCED GREP
+
+grep "West" * (looking for West in current directory)
+grep "West" * -R (recursively looks in all the directories up to current)
+grep -i "west" * (case insensitive search for west)
+grep -iv "west" * (return lines that do not include west)
+
+GREP with redirection
+
+grep -i "west" * > westdata.txt
+grep -i "north" 2014Sales | sort -k 2 (-k by column and 2 is second column)
+grep -i "north" 2014Sales | sort -rk 4 (reverse sort column 4)
+ifconfig eth0 | grep "inet" | grep -v "inet6" | tr -s " " ":" | cut -f 3 -d ":"
+
+Locate content in a text file
+
+grep -i "^north" 2014Sales (lines that begin with the word north)
+grep -i "north$" 2014Sales (lines that end with the word north)
+grep "\$....$" (backslash means take away $ special meaning .... means specifically 4 digits and at the end of the line - last dollar sign)
+grep -i "[we]st" 2014Sales (only returns west entries)
+grep -i "[we].st" 2014Sales (returns west and east)
+
+_______________________________________________________________________
+Advanced File Permission
+
+ACL (Access Control Lists) Give different users or different groups permissions to files or directories
+getfacl 2014Sales
+setfacl -m u:jchavez:r (-m is modify user:jchavez:read) will have a + in
+getfacl 2014Sales
+setfacl -m u:cblackwell:rw 2014Sales
+setfacl -m g:sales:rwx . (this will be for the group sales to the current directory)
+
+Quotas
+
+vi /etc/fstab
+	change defaults,usrquota,grpquota
+reboot system or mount -o remount /Data
+quotacheck -cug /Data(will create user and group quota files)
+quotacheck -avug (-a is check on all mounted filesystems that supports quotas)
+edquota -u cblackwell (soft will give a grace period and hard will not allow any more)
+	edit soft limit in blocks to be 90 (it's like vi)
+quota -u cblackwell
+edquota -g sales
+	edit hard inode to be 1000
+setquota -g projectmanagers 0 5000 0 0 /Data (set quota via command line)
+edquota -t (to edit default grace periods)
+quotaon -vug /Data
+quotaoff to turn off
+repquota -ug /Data (quota report for users and groups for /Data filesystem)
+_____________________________________________________________________________
+Set up Shared Directories for Users (to collaborate)
+
+mkdir Shared (doesn't have to be named Shared)
+chgrp sales Shared (change group associated with that shared directory)
+chmod g+w Shared (adding write permission to group)
+	If you need multiple groups with multiple permissions use ACL
+setfacl -m u:cblackwell:r Shared
+setfacl -m g:projmgrs:rx Shared
+ls -ld Shared (plus sign shows ACLs have been configured)
+getfacl Shared
+
+Sticky bit (special permission that only applies to subdirectories / only the owner of a file (and root) are able to rename and delete files in the directory.)
+chmod +t Shared (turns on sticky bit)
+ls -ld Shared (will show that world permissions are r-t
+
+____________________________________________________________________________-
+Bash Script Programming
+
+read --in scripting
+the read command asks the user for input and stores it in a variable
+
+while -- code executes if is true testing a variable/in this instance while it is not equal to 3
+
+until -- code executes if condition is false
+
+lets create an example:
+vi menu.sh
+
+#!/bin/bash
+while [ "$menuchoice" !=3 ] --- this could be // until [ "$menuchoice" = 3 ]
+clear
+echo "Menu"
+echo "1 - List logged on users"
+echo "2 - List Linux kernel version"
+echo "3 - Exit"
+echo
+echo "Please enter your choice"
+read menuchoice
+
+if [ $menuchoice = 1 ]
+then
+	clear
+	who
+elif [ $menuchoice = 2 ]
+then
+	clear
+	uname -r
+else
+	exit
+fi
+done
+
+chmod +x menu.sh
+./menu.sh
+
+Logic Statements
+
+You can do at the command line or in scripts
+First example is at the command line
+
+AGE=30
+echo $AGE
+now test a condition -- need to use square brackets and have spaces after opening bracket and before closing bracket
+
+[ $AGE -gt 65 ] && echo "Senior"       (-gt is greater than && means if both are true to left and right then echo "Senior")
+
+
+TEST Command
+man test
+
+test 10 -gt 5 && echo "True"
+test -e useractivity (file that exists)
+echo $?
+0
+test -e useractivity (file that does not exist)
+1
+
+Example Script using Test
+
+#!/bin/bash
+while [ $menuchoice" !=3 ]
+do
+	clear
+	echo "Menu"
+	echo "1 - Test file existence"
+	echo "2 - Test file write access"
+	echo "3 - Exit"
+	echo
+	echo "Please enter your choice:"
+	read menuchoice
+
+if [ $menuchoice = 1 ]
+then
+	echo "Enter filename:"
+	read filename
+	if [ -e $filename ]
+	then
+		echo "$filename does exist."
+	else
+		echo "$filename does NOT exist."
+	fi
+	read junk
+elif [ $menuchoice = 2 ]
+	echo "Enter filename:"
+	read filename
+	if test -w $filename
+	then
+		echo "$filename is writeable."
+	else
+		echo "$filename is NOT writeable."
+	fi
+	read junk
+fi
+done
+_______________________________________________________
+EXPANSION at command line and in scripts
+
+at the command line
+
+echo {6..8} (this return the numbers in between as well)
+echo $((567*)) (this does the math)
+tab completion is another example of expansion
+
+CURRENTDATE=$(date) (this sets a variable to return a linux command)
+
+Now within a script
+
+#!/bin/bash
+
+clear
+echo "Directories will be created from 2009-2015"
+echo "Enter directory name suffix:"
+read dir_suffix
+
+mkdir 20{09,10,11,12,13,14,15}_$dir_suffix
+echo
+echo "Subdirectories successfully created"
+ls 20*_$dir_suffix
+
+_________________________________________
+Exit status (0 is true 1 is false)
+
+exit status lets us determine if the previously executed command exited successfully
+
+echo $? (0 means true and 1 means false)
+
+at the command line
+[[10 -gt 5 ]]
+echo $? (returns a value of 0)
+
+__________________________________________________________________________
+REMOTE ACCESS
+
+2 Types
+	Shell based
+	GUI or Desktop based
+
+Secure
+ssh
+scp
+ftps
+tunneled vnc
+tunneled xdmcp
+
+Insecure
+telnet
+ftp
+vnc
+xdmcp
+____________________________________________________________
+Telnet
+
+yum list installed | grep telnet
+netstat -ant | grep 23  (telnet listens on port 23)
+	On a client
+telnet server1 (can't login as root for security reasons)
+___________________________________________________________
+VNC (remote access with graphical desktop)
+
+yum list installed | grep vnc-server
+cd /lib/systemd/system
+ls vn*
+(shows vncserver@.service)
+cp vncserver@.service /etc/systemd/system/vncserver@:1.service
+replace user in two spots in the config with linux user that will be connecting
+
+su cblackwell
+vncpasswd
+firewall-cmd --permanent --zone=public --add-port=5901/tcp
+firewall-cmd --reload
+systemctl start vncserver@:1.service
+	go to client
+GUI applications/tigervnc
+____________________________________________________________________
+SSH
+
+yum list installed | sshd
+service sshd status
+netstat -ant | grep 22
+firewall-cmd --permanent --zone=public --add-port=22/tcp
+firewall-cmd --reload
+	go to client
+hostname
+ssh root@server1
+
+___________________________________________________________________
+SCP
+
+ssh root@server1
+
+COPY from REMOTE HOST TO SERVER
+scp file root@server1:/UserFiles
+
+	more advanced version
+COPY from SERVER to REMOTE HOST
+
+scp -Crl 200 root@server1:/UserFiles/Software /SampleFiles (-C is compression r is recursively copy contents of directories -l is a limit in Kilobytes)
+_____________________________________________________________________________-
+Tunnel insecure over SSH
+
+http over SSH example:
+
+ssh -L 8000:server1.example.com:80 root@server1
+
+VNC over SSH (desktop GUI)
+
+ssh -L 5901:server1.example.com:5901 root@server1
+_______________________________________________________________________________
+SSH KEYS (public key authentication)
+
+1. Generate unique keys for user account
+ssh-keygen -t rsa (will create a file in home directory under hidden directory called .ssh.  The file will be called id_rsa
+	id_rsa (private key) id_rsa.pub (public key)
+2. Add public key to SSH server
+ssh-copy-id root@server1
+3. Make sure private key is in memory so it doesn't prompt for name and password
+ssh-agent
+ssh-add
+ssh-add -l (to check and make sure it was added.
+4. Set up SSH server to allow public key authentication instead of password
+vi /etc/ssh/sshd_config
+go to password authentication section and change to no
+5. service sshd restart
+6. start ssh session
+ssh root@server1 (it will ask for passphrase for key and that's it)
+____________________________________________________________________________
+NFS (Network File System)
+	-allows local user remote access with the appearance of using local folders
+	-4 versions
+		NFSv1
+		NFSv2
+		NFSv3
+		NFSv4 (this is what is in use)
+	-requires 3 daemons
+		1. portmap
+		2. nfs
+	-Users/Groups mapped by UID/GID and can cause issues
+	-Firewalls might block / must be configured to allow ICMP type 3 packets,
+	port 111, port 2049, and any ports assigned to the rpc.mountd daemon
+	-5 permission that can be granted in the /etc/exports
+		1. ro
+		2. rw
+		3. sync
+		4. no_subtree_check
+		5. no_root_squash
+
+Installing NFS
+
+1. libnfsidmap
+2. nfs-utils
+3. nfs4-acl-tools
+
+yum list installed | grep nfs
+cat hosts.allow
+cat hosts.deny (set each entry to ALL)
+
+service nfs start
+service nfs status
+
+/etc/exports (this is where the NFS server lists the exported mount point directories)
+
+
+MOUNT EXTERNAL NFS SHARE
+
+switch to a connected client and type
+showmount -e server1 (this will show any mount point or exported folders on host
+mount rhel1:/UserFiles /Remote_UserFiles/   (rhel1 is the remote machine, /UserFiles is the remote directory
+					     and /Remote_UserFiles/ is where to mount the remote directory on the local machine)
+
+	FSTAB entry to automount remote nfs filesystem
+rhel1:/UserFiles	/Remote_UserFiles 	nfs	rsize=8192,wsize=8192
+___________________________________________________________________________________
+Configuring NFS Exports #defaults are root_squash, sync and ro
+
+vi /etc/exports
+#local directory that you want to share
+/UserFiles 192.168.1.0/24(rw,root_squash)
+/website 192.168.1.241
+#then to make sure nfs is running
+service nfs status
+
+EXPORTING an NFS Share
+showmount -e rhel1 (shows exportable filesystems)
+exportfs -ua (will make exported filesystems not available)
+exportfs -r (will make them available again)
+#to make them them automount
+vi /etc/fstab
+add a line at the end of the file like:
+rhel1:/UserFiles	/Remote_UserFiles	nfs	defaults
+rhel1:/website		/Remote_website		nfs	dafaults
+:wq
+mount -a
+_________________________________________________________
+MOUNTING and USING SMB Shares
+
+
+
+
+
+
+
+
+Kerberos can be used as a trusted 3rd party authentication
+Kerberos has 3 security mechanisms
+	-krb5=kerberos version 5
+	-krb5i=kerveros v5 plus integrity checking
+	-krb5p=kerberos v5 including encryption (most secure, most overhead)
+
+
+
+
+
+
+
+
+Inode - includes metadata like owner, permissions, date and timestamps.
+ls -li
+
+XFS and B-treeFS metadata journaling, scalable, striped allocations, variable block sizes
+Btree has some features that are still experimental but some are working fine like pooling
+
+Btree/Pooling - taking multiple physical disks and treating it as a single storage unit
+
+######################### MUTT WIZARD NOTES ###########################################
+
+// MUTTWIZARD SPECIFIC (mw) //
+mw -a you@email.com					add a new e-mail account
+mw -l								list existing accounts
+mw -y your@email.com				sync an email account
+mw -d								choose account to delete
+pass edit mw-your@email.com			revise account password
+
+#### MAIN USE COMMANDS WHILE IN NEOMUTT ####
+
+SEND-REPLY-SAVE-DELETE
+i + number		switch email accounts
+m 			send mail
+l			open email
+h			opposite of l
+r/R			reply/reply all to highlighted email
+s			save selected mail or attachment
+f			forward a message with comments
+
+MOTION + MOTION to SIDEBAR
+B			show/hide sidebar
+ctrl-j/k		move up/down in sidebar
+ctrl-o			open mailbox + sidebar
+j/k or u/d		down/up like vim
+gs,gi,ga		g followed by another letter - change to
+M and C			Move and Copy - followed by mailbox (spam)
+i#			go to numbered account (change #)
+
+SEARCH or FIND(FILTER)
+ctrl-f			find - show only email that matches terms
+?			all shortcuts
+
+MISC
+a			add person to abook
+ctrl-b			select a url to open
+T			tag messages matching a pattern
+ctrl-T			untag messages matching a pattern
+p			print current message
+v			view attachments
+
+#### MUTT CRITICAL FILES ####
+
+~/.local/share/mail		where actual mail is kept
+~/.config/mutt/
+~/.mbsyncrc					isync/mbsync config
+muttrc						global settings
+accounts/					each account unique settings
+/usr/share/mutt-wizard/mutt-wizard.muttrc	several global config files
+
+
+
+#### NETWORK LINUX COMMANDS - USEFUL LIST ####
+
+arpwatch – Ethernet Activity Monitor.
+bmon – bandwidth monitor and rate estimator.
+bwm-ng – live network bandwidth monitor.
+curl – transferring data with URLs. (or try httpie)
+darkstat – captures network traffic, usage statistics.
+dhclient – Dynamic Host Configuration Protocol Client
+dig – query DNS servers for information.
+dstat – replacement for vmstat, iostat, mpstat, netstat and ifstat.
+ethtool – utility for controlling network drivers and hardware.
+gated – gateway routing daemon.
+host – DNS lookup utility.
+hping – TCP/IP packet assembler/analyzer.
+ibmonitor – shows bandwidth and total data transferred.
+ifstat –  report network interfaces bandwidth.
+iftop – display bandwidth usage.
+ip (PDF file) – a command with more features that ifconfig (net-tools).
+iperf3 – network bandwidth measurement tool. (above screenshot Stacklinux VPS)
+iproute2 – collection of utilities for controlling TCP/IP.
+iptables – take control of network traffic.
+IPTraf – An IP Network Monitor.
+iputils – set of small useful utilities for Linux networking.
+iw – a new nl80211 based CLI configuration utility for wireless devices.
+jwhois (whois) – client for the whois service.
+“lsof -i” – reveal information about your network sockets.
+mtr – network diagnostic tool.
+net-tools – utilities include: arp, hostname, ifconfig, netstat, rarp, route, plipconfig, slattach, mii-tool, iptunnel and ipmaddr.
+ncat – improved re-implementation of the venerable netcat.
+netcat – networking utility for reading/writing network connections.
+nethogs – a small ‘net top’ tool.
+Netperf – Network bandwidth Testing.
+netsniff-ng – Swiss army knife for daily Linux network plumbing.
+netstat – Print network connections, routing tables, statistics, etc.
+netwatch – monitoring Network Connections.
+ngrep – grep applied to the network layer.
+nload – display network usage.
+nmap – network discovery and security auditing.
+nmcli – a command-line tool for controlling NetworkManager and reporting network status.
+nmtui – provides a text interface to configure networking by controlling NetworkManager.
+nslookup – query Internet name servers interactively.
+ping – send icmp echo_request to network hosts.
+route – show / manipulate the IP routing table.
+slurm – network load monitor.
+snort – Network Intrusion Detection and Prevention System.
+smokeping –  keeps track of your network latency.
+socat – establishes two bidirectional byte streams and transfers data between them.
+speedometer – Measure and display the rate of data across a network.
+speedtest-cli – test internet bandwidth using speedtest.net
+ss – utility to investigate sockets.
+ssh –  secure system administration and file transfers over insecure networks.
+tcpdump – command-line packet analyzer.
+tcptrack – Displays information about tcp connections on a network interface.
+telnet – user interface to the TELNET protocol.
+tracepath – very similar function to traceroute.
+traceroute – print the route packets trace to network host.
+vnStat – network traffic monitor.
+websocat – Connection forwarder from/to web sockets to/from usual sockets, in style of socat.
+wget –  retrieving files using HTTP, HTTPS, FTP and FTPS.
+Wireless Tools for Linux – includes iwconfig, iwlist, iwspy, iwpriv and ifrename.
+Wireshark – network protocol analyzer.
+
+#### NFS MOUNTS ####
+NFS CLIENT
+
+timedatectl (if no time sync and no NTP service run
+sudo timedatectl set-ntp true
+sudo hwclock --systohc (to set the hardware clock)
+sudo pacman -S nfs-utils
+showmount -e 192.168.1.89 (will show exports of goliath/NFS server)
+create directories on client to mount shares (/mnt/...)
+
+FSTAB entries
+# NAS -- goliath
+192.168.1.89:/volume1/photo /mnt/photo  		nfs     rw,sync,nofail,_netdev 0 0
+192.168.1.89:/volume1/Documents /mnt/documents          nfs     rw,sync,nofail,_netdev 0 0
+192.168.1.89:/volume1/music /mnt/music                  nfs     rw,sync,nofail,_netdev 0 0
+
+CLI AD-HOC
+#documents
+mount -t nfs 192.168.1.89:/volume1/Documents /mnt/documents
+#music
+mount -t nfs 192.168.1.89:/volume1/music mnt/music
+#photos
+mount -t nfs 192.168.1.89:/volume1/photos mnt/photos
+
+
+#### AUDIO TROUBLESHOOTING ####
+step 1 # most likely culprit if dummy output is only available
+edit /etc/asound.conf #ensure card number is appropriate
+current functional asound.conf below
+
+-----------------
+pcm.!default {
+     type hw
+     card 1
+}
+
+ctl.!default {
+     type hw
+     card 1
+}
+------------------
+
+#### AUDIO SYS INFO ###
+Commands to get audio info
+lspci -k                    (kernel modules)
+aplay -L
+pacmd list-cards
+pacmd list-sinks
+pacmd list-sink-inputs
+sudo journalctl -b
+
+
+#### BLUETOOTH and CONTROLLERS ####
+# add more here regarding installing bluez and bluez-utils
+
+XBOX ONE CONTROLLER
+
+must disable enhanced retransmission mode ERTM
+# TEMPORARY
+echo > 1 /sys/module/bluetooth/parameters/disable_ertm
+# PERMANENT add to module configuration
+/etc/modprobe.d/xbox_bt.conf
+options bluetooth disable_ertm=1
+#### PC BUILD LIST ####
+------------ ceres --------------
+proc			amd ryzen 5800x
+vid			amd radeon 6800
+ram			gskill 3200 / cas 16 / 2x16GB
+mobo			asus b550 gaming f
+ssd			wd sn750 2tb
+case			fractal meshify black
+psu			evga G3 750W
+
+
+
+
+------------ maximus ------------
+proc			intel 6600k
+vid			nvidia geforce gtx970 (evga 4GB)
+ram			gskill 2800 / cas x / 4x4GB
+mobo			asus x170 maximus hero VII
+ssd			samsung 250gb / samsung 500gb / wd sn750 500gb / wd blue 2tb
+case			fractal define
+cooler			scythe fuma
+psu			evga G3 650W
+
+
+#### REGEX NOTES ####
+
+	. - Any one character
+	* - Match any number of previous (including 0)
+	+ - Match any number of previous
+	$ - End of the line
+	^ - Beginning of the line
+	\S - Any non-whitespace character
+	\s - Any whitespace character
+	? - Previous character is optional
+	[a-z] - any lowercase letter
+	[A-Z] - any uppercase letter
+	[A-Za-z] - any letter
+	\ - escape something
+	[0-9] - any number
+
+	## URL regex to get only URL and not other junk
+	grep "https\?://\S*\.[a-z]\+"
+	grep "https\?://\S\+\.\S\+\.[a-z]\+" (my version)
+
+	## URL regex for e-mail address
+	grep "\S\+@\S\+\.[[:alpha:]]"
+
+
+
+#### RSYNC NOTES ####
+
+## FILE TRANSFER ##
+# Similar to copy in basic form
+rsync file newfile
+# To another computer
+rsync newfile archbox:
+rsync newfile jason@archbox: # if your username is different
+rsync -v newfile archbox: # if you want verbose detail
+# To another computer (directory)
+rsync -rv newdir archbox:
+# To only update files that have changed (like a diff)
+rsync -urv newdir archbox:
+# To allow interuptible or partial transfers
+rsync -urvP newdir archbox:
+
+
+
+## Memory
+free
+free -h
+cat /proc/meminfo
+sudo dmidecode -t memory
+lspci |grep -i vga (video memory)
+glxinfo |egrep -i 'device|memory' (video memory)
+## hwinfo (requires package hwinfo)
+hwinfo
+hwinfo --short
+hwinfo --disk
+hwinfo --short --cpu --disk --listmd --gfxcard --wlan --printer
+# List user and group info
+id
+who
+who am i
+# Block storage devices
+lsblk
+lsblk -l
+lsblk -f (show filesystem types)
+blkid
+# CPU information
+lscpu
+
+# Display hardware topology
+lstopo (requires package hwloc-gui)
+# List USB devices
+lsusb
+# List PCI devices
+lspci
+# View current time and date
+timedatectl
+# Who is logged in
+w
+
+#### VIM NOTES ###############################################
+
+# search for a pattern and delete the line
+:g/pattern/d
+# delete whitespace lines or empty lines
+:g/^\s*$/d
+
+
+
+#### VIM SPELL ####
+####################### SPELLCHECK in VIM #####################
+:set spell!  // Highlighted words that are misspelled or have
+//standardization issues.
+]s - moves to first word highlighted and subsequent
+]S - moves to first actual misspelling and not just standardization
+z= - make suggestions to correct
+zg - adds words to the dictionary
+zug - removes words from the dictionary
+## vim has two custom word lists ##
+zg - is the good word list
+zw - adds words to the bad word list # words that you don't like
+zuw - removes words from the bad word list
+
+
+
+############ VIRT MANAGER AND VIRSH NOTES ###################
+kvm - kernel based virtual machine
+qemu - quick emulator
+libvirt - consistent API across  many virtualization techs
+
+client tools
+-------------------------------------------------------------
+virsh - command-line tools for communicating with libvirt
+virt-manager - gui alternative to manage kvm, qemu, etc.
+virt-install - helper tools for creating new VM guests
+virt-viewer - UI for interacting with VM via VNC/Spice
+
+############ VIRSH -- Changing resolutions ##################
+QEMU defaults to a 16MB Video memory.
+1.  Find correct domain
+$ virsh list --all
+2.  Edit the domain XML
+$ virsh edit --domain <arch-efi>
+3.  Find video line and change vgamem="<65536>
+4.  Get the modeline
+$ cvt 2560 1440  ##cvt?? it works but don't know much
+5.  Tak entire modeline and creat a new one like this:
+$ xrandr --newmode "2560x1440_60.00" ...put rest of modeline
+6.  Add the mode to your screen
+$ xrandr --addmode Virtual-1 2560x1440_60.00
+7.  Use the mode
+xrandr --output Virtual-1 --mode 2560x1440_60.00
+8.  Should be able to add the mode permanently to /etc/X11/xorg.conf.d/
+vim and create the following file: 10-monitor.conf
+section "Monitor"
+    Identifier "Virtual-0 "
+    Modeline "2560x1440_60.00"  312.25  2560 2752 3024 3488  1440 1443 1448 1493 -hsync +vsync
+    Modeline "3840x2160_60.00"  712.75  3840 4160 4576 5312  2160 2163 2168 2237 -hsync +vsync
+    Option "PreferredMode" "2560x1440_60.00"
+EndSection
+
+############ PACKAGES NEEDED ################################
+pacman -Sy --needed \
+qemu \
+dhclient \
+openbsd-netcat \
+virt-viewer \
+libvirt \
+dnsmasq \
+dmidecode \
+ebtables \
+virt-install \
+virt-manager \
+edk2-ovmf \
+bridge-utils
+
+############## PERMISSIONS  ###################################
+The primary tricky bit is getting permissions correct. There are
+a few key pieces to configure so your using can interact with
+qemu:///system. This enables VMs to run as root, which is generally
+what you'll want. This is also the default used by virt-manager.
+Checkout this blog post from Colin Robinson, which calls out the
+differences.
+
+virsh, will use qemu:///session by default, which means CLI calls
+not run as sudo will be looking at a different user. To ensure all
+client utilities default to qemu:///system, add the following
+configuration to your .config directory.
+
+sudo cp -rv /etc/libvirt/libvirt.conf ~/.config/libvirt/ &&\
+sudo chown ${YOURUSER}:${YOURGROUP} ~/.config/libvirt/libvirt.conf
+
+    Replace ${YOURUSER} and ${YOURGROUP} above.
+
+
+
+## Do below to add wheel group explicity to polkit config.
+## you will not be prompted for a password when interacting
+## with virt-manager or virsh
+
+## edit /etc/polkit-l/rules.d/50-libvirt.rules
+
+/* Allow users in wheel group to manage the libvirt
+daemon without authentication */
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.libvirt.unix.manage" &&
+        subject.isInGroup("wheel")) {
+            return polkit.Result.YES;
+    }
+});
+
+################ FILES and IMAGES ####################################
+libvirt keeps its files at: /var/lib/libvirt
+images directory in /var/lib/libvirt/ is the default storage location
+
+################ VM CREATION USING CLI ################################
+virt-install \
+--name ubuntu1804 \
+  --ram 2048 \
+  --disk path=/var/lib/libvirt/images/u19.qcow2,size=8 \
+  --vcpus 2 \
+  --os-type linux \
+  --os-variant generic \
+  --console pty,target_type=serial \
+  --cdrom /var/lib/libvirt/isos/ubuntu-18.04.4-live-server-amd64.iso \
+  --boot uefi  ## only if you want virtual machine to be uefi
+
+## if using the virt-manager gui, you can select uefi on installation
+## by clicking the "Customize configuration before install" on step 5 of 5
+## then select firmware from the overview tab Hypervisor Details section
+
+  CLONING
+  --------------------------------
+  virt-clone \
+  --original ubuntu18.04 \
+  --name cloned-ubuntu \
+  --file /var/lib/libvirt/images/cu.qcow2
+########################################################################
+
+#### ST BUILD NOTES ####
+TODO:
+clipboard
+copyurl
+## applied ##
+st-alpha-0.8.2.diff
+st_applied_patches.txt
+st-boxdraw_v2-0.8.3.diff
+st-font2-20190416-ba72400.diff
+st-ligatures-boxdraw-20200430-0.8.3.diff
+st-scrollback-20200419-72e3f6c.diff
+st-scrollback-mouse-20191024-a2c479c.diff
+st-scrollback-mouse-altscreen-20200416-5703aa0.diff
+st-selectionbg-alpha-0.8.2.diff
+st-selectioncolors-0.8.4.diff
+st-vertcenter-20180320-6ac8c8a.diff
+st-xresources-20200604-9ba7ecf.diff
+st-externalpipe (with st-copyout + st-urlhandler bin)
+###########################
+
+
+#### UPDATE GRUB following any changes ####
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+#### MAKE CHANGES TO GRUB ####
+/etc/default/grub
+
+
+#### AUDIO TROUBLESHOOTING ####
+delete the pulse folder in ~/.config
+also, start dwm then gnome
+
+#### DEFAULT DIRECTORY MANAGEMENT ####
+# Edit the file below to adjust default directories
+# especially helpful for gnome nonsense
+# there is a global in /etc/xdg/user-dirs.defaults but
+# will be overridden by the local below
+.config/user-dirs.dirs
+
+#### PRINTER AND CUPS ####
+hp printer
+install: cups and start service
+install: hplip
+run:
+hp-setup -i ## cli version requires -i
+## note -- hp-setup gui interface requires qtk4 or 5
+
+## troubleshooting ##
+if hp-setup can't find ppd then start cups.service
+
+## Graphics system versions ##
+lib32-vulkan-icd-loader 1.2.166-1
+lib32-vulkan-radeon 20.3.3-1
+vulkan-icd-loader 1.2.166-1
+vulkan-radeon 20.3.3-1
+lib32-mesa 20.3.3-1
+mesa 20.3.3-1
+mesa-demos 8.4.0-4
+
+#### MBR to GPT transition ####
+## INFO below for MBR to GPT in unconfirmed ##
+
+use gdisk to convert partition table to GPT
+    gdisk /dev/nvme0n1
+# if you don't see mbr or gpt sudo or root
+# may get a warning about last partition needing to be
+# resized to make room for gpt table -- shrink and leave 1 GB
+# will have to use live iso to boot and resize
+create boot partition for efi
+    n
+    1G
+    type ef00
+reload the partition table
+    partprobe /dev/nvme0n1
+###### INSTALL SYSTEMD BOOTLOADER (efi only/gpt recommended) ####
+boot live iso --make sure bios is UEFI and once booted issue:
+"ls /sys/firmware/efi/efivars" --you should get output
+mount required filesystems -- usually root and boot
+chroot into the /boot and issue "bootctl install"
+should then see EFI folder within the mounted boot folder
+ensure loader.conf and entries (arch.conf) are made for desired bootmenu
+entries like arch.conf should have root partition id at the bottom like:
+
+    title Archlinux
+    linux /vmlinuz-linux
+    initrd /amd-ucode.img
+    initrd /initramfs-linux.img
+    options root=PARTUUID=249eedac-e466-4a12-ae48-bb0d21467989 rw
+##################################################################
+## Using cat to create or write to a file ########################
+cat > file.txt << "EOF"
+
+
+
+###################### COLORS and PALETTES #######################
+
+#14182c			deep, dark blue (great for background)
+
+
+
+###################### OBSCURE LINUX COMMANDS #######################
+
+    column: create columns from text input
+    tr: translate/substitute/delete input
+    join: like a database join but for text
+    comm: file comparison like a db join
+    paste: put lines in a file next to each other
+    rs: reshape arrays
+    jot: generate data
+    expand: replace spaces and/or tabs
+    time: track time and resourcing
+    watch: execute something on a schedule in realtime
+    xargs: execute something on all inputs
+    iftop: visually show network traffic
+    jnettop a more detailed iftop
+    htop: show system stats more powerfully
+    xxd: manipulate files in hex
+    mtr: powerful traceroute replacement
+    mdfind: osx find replacement that uses spotlight
+    brew: osx package manager
+    df: disk free
+    du: disk usage
+    iotop: i/o stats
+    dig: dns queries
+    host: dns queries
+    man ascii: lookup your ascii
+    sshfs: mount a directory through ssh
+    wget: get ws
+    dstat: powerful system statistics
+    tmux: a better screen
+    jq: command line JSON parsing
+    pushd: push your pwd to a stack
+    popd: pop pwd off your stack
+    lsof: godlike system information [*]
+    ncat: nmap-based replacement for nc
+    fuser: kills locking processes
+    vim: attack yourself
+    tac: cat in reverse
+    slurm: network interface stats
+    rename: change spaces to underscores in names
+    bmon: a simple bandwidth monitor
+    open .: in osx, open finder in the current dir
+    lsmod: show kernel modules
+    printf: change the format of output
+    timeout: execute something and kill it soon after
+    disown: protect a job from disconnect
+    fc: edit your last command in your editor and execute it
+    sudo !!: repeat last command with sudo
+    tee: send output to stdout as well
+    pgrep: greps through processes
+    pkill: kills processes based on search
+    fmt: text formatter
+    multitail: see logs in separate views
+    bc: an interactive calculator language
+    apropos: info on commands
+    strace: the uber debug tool
+    man units: interesting
+    pstree: shows processes in awelltree
+    pv: a progress bar for piped commands
+    ddate: wtf
+    zgrep: grep within compressed files
+    zless: look at compressed files
+    nping: nmap-based custom packet creation
+    readlink: read values of links
+    iostate: look at your disk i/o
+    atop: another top
+    split: break a file into pieces
+    dd: disk writing
+    ndiff: show differences in nmap scans
+    ss: socket statistics (show apps using the Internet)

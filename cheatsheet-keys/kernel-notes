@@ -1,0 +1,44 @@
+#### KERNEL BUILD GUIDE ####
+wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.20.tar.sign
+
+unxz linux...
+gpg2 --verify linux-X.XX.XX.tar.sign linux-X.XX.XX.tar
+
+tar -xvf linux-X.XX.XX
+cd linux-X.XX.XX
+make mrproper
+zcat /proc/config.gz > .config
+## Warning -- above command uses current kernel so do not forget to rename in CONFIG_LOCALVERSION in .config ##
+vim .config
+make xconfig
+make -j5
+su -
+##### root required below ####
+make modules_install
+## This will copy the compiled modules into /lib/modules/<kernel version>
+cp -v arch/x86_64/boot/bzImage /boot/vmlinuz-linuxXX
+cp /etc/mkinitcpio.d/linux.preset /etc/mkinitcpio.d/linuxXX.preset
+vim /etc/mkinitcpio.d/linuxXX.preset
+    ALL_kver="/boot/vmlinuz-linuxXX"
+    default_image="/boot/initramfs-linuxXX.img"
+    fallback_image"/boot/initramfs-linuxXX-fallback.img"
+mkinitcpio -p linuxXX
+cd /boot/loader/entries
+vim archXX.conf
+vim loader.conf
+
+## Removing a custom kernel with systemd boot.  If using grub, will have to
+## remove from bootloader and re-run grub-mkconfig
+
+
+#### KERNEL REMOVE GUIDE ####
+
+## 1 ## /lib/modules/(kernel_name) and remove
+## 2 ## /boot
+	-remove (initramfs-linux(XX)-fallback.img
+	-remove (initramfs-linux(XX)-.img
+	-remove vmlinuz-linux(XX)
+## 3 ## /boot/loader
+	-edit loader.conf and remove entry
+	-go into /boot/loader/entries/ remove the specific .conf
+	 or rename it to .old for later use

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+### Unfinished script to use as a dmenu selection ###
+
+PKGALL="sudo pacman -Q"
+PKGEXP="sudo pacman -Qett"
+PKGGRP="$(pacman -Qiet | grep Groups | sed '/None/d' | awk '{ print $3 }' | sort -ui)"
+
+case "$(printf "all\nexp-installed\nexp-installed-copy\ngroups-installed" | dmenu -i -c -l 4 -p "Pick a package request: ")" in
+        all) $PKGALL | dmenu -g 8 -l 50 ;;
+        exp-installed) $PKGEXP | dmenu -g 8 -l 30 ;;
+        exp-installed-copy) $PKGEXP | xclip -selection clipboard ;;
+        groups-installed) $PKGGRP | dmenu -l 5 -c  ;;
+esac

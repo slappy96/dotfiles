@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# /*------------ dmenu script to unmount goliath -------------*/
+
+PHOTO="$(sudo umount /mnt/photo)"
+DOCS="$(sudo umount /mnt/documents)"
+MUSIC="$(sudo umount /mnt/music)"
+
+case "$(printf "all\ndocuments\nphoto\nmusic" | dmenu -i -l 4 -c -p "Unmount which drives?")" in
+              all) $PHOTO && $DOCS && $MUSIC ;;
+        documents) "$DOCS" ;;
+            photo) "$PHOTO" ;;
+            music) "$MUSIC" ;;
+esac

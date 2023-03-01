@@ -1,0 +1,15 @@
+#### RSYNC NOTES ####
+
+## FILE TRANSFER ##
+# Similar to copy in basic form
+rsync file newfile
+# To another computer
+rsync newfile archbox:
+rsync newfile jason@archbox: # if your username is different
+rsync -v newfile archbox: # if you want verbose detail
+# To another computer (directory)
+rsync -rv newdir archbox:
+# To only update files that have changed (like a diff)
+rsync -urv newdir archbox:
+# To allow interuptible or partial transfers
+rsync -urvP newdir archbox:

@@ -1,0 +1,8 @@
+#### MUTT CRITICAL FILES ####
+
+~/.local/share/mail		where actual mail is kept
+~/.config/mutt/
+~/.mbsyncrc					isync/mbsync config
+muttrc						global settings
+accounts/					each account unique settings
+/usr/share/mutt-wizard/mutt-wizard.muttrc	several global config files

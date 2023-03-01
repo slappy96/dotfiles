@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# dmenu script which utilizes find to locate files
+## TODO -- add choices on what to do with results
+
+selected="$(find ~/.config -iname "*notes" -type f | sort |dmenu -l 100 -p "Choose one")"
+
+## Test if selected in a null string and exit if it is
+[ -z "$selected" ] && exit
+
+## fork process with own sid and default editor
+[ -f "$selected" ] && setsid $EDITOR $selected
+
+## if selected is a directory, exit with message
+[ -d "$selected" ] && echo "Folder, not a file"
+
+
+
+
+
+
+
+#fzf |dmenu -l 100 -p "Choose one" |xargs $EDITOR

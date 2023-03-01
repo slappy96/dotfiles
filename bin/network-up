@@ -1,0 +1,5 @@
+#!/bin/sh
+
+sudo mount -t nfs 192.168.1.28:/volume1/Documents /mnt/documents
+sudo mount -t nfs 192.168.1.28:/volume1/photo /mnt/photo
+sudo mount -t nfs 192.168.1.28:/volume1/music /mnt/music

@@ -1,0 +1,62 @@
+################# EMAIL SERVER INSTALL GUIDE ########################
+
+## Easy way is Luke Smith script ##
+
+-  Go to Epik and add an Email Record (mx record)
+   Priority - 0
+   Host - (leave blank)
+   Points to - mail.munosxyz.  ## Don't forget trailing dot (Epik)
+   TTL - whatever (300)
+
+-  Make 3 cname entries to set up subdomain (really so certbot works)
+   Host Box - www		Points to munos.xyz.
+   Host Box - mail		Points to munos.xyz.
+   Host Box - www.mail		Points to munos.xyz.
+
+-  ssh root@mainserver then:
+-  vim /etc/nginx/sites-available/mail (if the file mail isn't there, create it
+   ## copy over default file in sites-available and adjust:
+   root /var/www/mail; ## this is really only for certbot to get OpenDKIM to work
+-  ln -s /etc/nginx/sites-available/mail /etc/nginx/sites-enabled/
+-  systemctl reload nginx
+-  certbot --nginx
+	select mail.munos.xyz and www.mail.munos.xyz
+	select redirect
+-  test proper error by going to mail.munos.xyz in browser - should get 404 error (nginx)
+-  curl -LO lukesmith.xyz/emailwiz.sh
+-  sh emailwiz.sh ## Will install:
+	postfix - to send mail
+	dovecot - to receive mail
+	spamassassin - obvious reasons
+	OpenDKIM - validates domain and e-mail as legitimate for large companys
+   ncurses interface
+   	-Postfix Configuration - select Internet Site
+	-System mail name: munos.xyz (just base domain name)
+
+   ## 3 text records you must add on domain registrar (Epik)
+   	- They are saved to the dns_emailwizard file in Luke's emailwiz script
+	1. DKIM
+		-Host box mail_domainkey
+		-Txt box v=[to the end of the string]
+	2. dmarc
+		-Host box _dmarc.munos.xyz
+		-Txt box v=[to the end of the line]
+	3. @
+		-Host box @
+		-Txt box v=[to the end of the lin]
+  ## to add a mail user on server
+  - useradd -m -G mail -s /bin/bash jason
+  ## give a password with:
+  - passwd
+
+  SMTP is mail.munos.xyz
+  SMTP port is 587
+  IMAP is mail.munos.xyz
+  IMAP port is 993
+  user name is just name like jason
+
+## RENEWAL OF CERTIFICATES ##
+
+## This will allow you to look at the actual cert -- look for VALIDITY
+## section and "not after"
+openssl x509 -in /etc/letsencrypt/live/domain_name1/cert.pem -text -noout

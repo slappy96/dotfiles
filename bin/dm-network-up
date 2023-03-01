@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# /*------------ dmenu script to bring goliath up -------------*/
+
+PHOTO="$(sudo mount -t nfs 192.168.1.28:/volume1/photo /mnt/photo)"
+DOCS="$(sudo mount -t nfs 192.168.1.28:/volume1/Documents /mnt/documents)"
+MUSIC="$(sudo mount -t nfs 192.168.1.28:/volume1/music /mnt/music)"
+
+case "$(printf "all\ndocuments\nphoto\nmusic" | dmenu -i -l 4 -c -p "Mount which drives?")" in
+              all) $PHOTO && $DOCS && $MUSIC ;;
+        documents) "$DOCS" ;;
+            photo) "$PHOTO" ;;
+            music) "$MUSIC" ;;
+esac

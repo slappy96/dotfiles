@@ -1,0 +1,24 @@
+##################### IWCTL (wifi configuration in Arch) #####################################
+iwctl -- new Arch wireless control
+
+iwctl - to get an interactive prompt w/ tab completion
+exit interactive prompt with ctrl+d
+[iwd]# help (list available commands)
+[iwd]# device list (to list all Wi-Fi devices)
+[iwd]# station <device> scan (to scan for networks)
+[iwd]# station <device> get-networks (to list available networks)
+[iwd]# station <device> connect <SSID> (to connect to network)
+[iwd]# station <device> disconnect (to disconnect from a network)
+[iwd]# device <device> show (to display details of a Wifi device)
+[iwd]# station <device> show (to display connection state)
+[iwd]# known-networks <SSID> forget (to forget a known network)
+
+you can pass all commands as command line arguments
+$iwctl device wlan0 show (from a normal command prompt or)
+[iwd]# device wlan0 show
+
+To disable auto-connect for a particular network
+create/edit file /var/lib/iwd/network.type
+add the following section to it:
+[Settings]
+AutoConnect=false

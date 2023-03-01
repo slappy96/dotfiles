@@ -1,0 +1,35 @@
+## NEOMUTT ##
+SEND-REPLY-SAVE-DELETE
+i + number		switch email accounts
+m			send mail
+l			open email
+h			opposite of l
+r/R			reply/reply all to highlighted email
+s			save selected mail or attachment
+f			forward a message with comments
+
+SYNC
+mw -Y			sync all
+mw -y			your@email.com sync
+pass edit mw-your@email	revise account password
+mw -d			choose account to delete
+
+MOTION + MOTION to SIDEBAR
+B			show/hide sidebar
+ctrl-j/k		move up/down in sidebar
+ctrl-o			open mailbox + sidebar
+j/k or u/d		down/up like vim
+gs,gi,ga		g followed by another letter - change to
+M and C			Move and Copy - followed by mailbox (spam)
+
+SEARCH or FIND(FILTER)
+ctrl-f			find - show only email that matches terms
+?			all shortcuts
+
+MISC
+a			add person to abook
+ctrl-b			select a url to open
+T			tag messages matching a pattern
+ctrl-T			untag messages matching a pattern
+p			print current message
+v			view attachments

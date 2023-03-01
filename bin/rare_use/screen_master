@@ -1,0 +1,17 @@
+#!/bin/sh
+
+#### Written by exitveloctiy 30 Nov 2020 ####
+#screen=$(xrandr --listactivemonitors |awk '/*/ { print $2 }' | sed 's/\+\*//')
+#xrandr --output "$screen" --auto --scale 1.0x1.0
+#xrandr --output "$screen" --mode 1920x1080 --scale 1.0x1.0
+
+intern=eDP1
+extern=DP1
+
+if xrandr | grep "$extern disconnected"; then
+   xrandr --output "$extern" --off --output "$intern" --auto
+   xwallpaper --stretch ~/.config/bg.jpg
+else
+   xrandr --output "$intern" --off --output "$extern" --auto
+   xwallpaper --stretch ~/.config/bg.jpg
+fi

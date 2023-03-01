@@ -1,0 +1,74 @@
+## VIM ##
+--TABS--
+:tabnew file		new tab
+:tabe file			new tab
+gt					next tab
+Gt					prev tab
+:tabc				close tab
+ctrl-w(x2)			move viewport
+ctrl-w q			close viewport
+ctrl-w -+=			resize viewport
+:sp					split horizontally
+:vs					split vertically
+ctrl-w T			move current to new tab
+
+shift-k				help
+:h <topic>			help
+u					undo
+ctrl-r				redo
+d4w					delete 4 words
+d4j					delete 4 lines(down)
+d4k					delete 4 lines(up)
+D					delete to end of line
+P					paste Before
+p					paste After
+@					play macro
+ci"					change inner "<({etc
+$					eol
+%					goto matching brace
+^or 0				bol
+(					begin sentence
+)					end sentence
+Q					ex mode
+r					replace character
+R					replace until...
+f					find ch
+F					find ch (Back)
+>>					indent line
+<<					de-indent
+*					next word under cursor
+#					prev word under cursor
+cis					change inside sentence
+gqG					format file with column width (gg first)
+
+:hardcopy > name.ps	print to postscript
+(then at terminal run ps2pdf name.ps
+==========================================
+:h visual-operators (vim help)
+v					visual character
+shift-v				visual lines
+ctrl-v				visual block
+u					lower-case
+U					upper-case
+>					indent
+<					dedent
+vaw					select word
+vib					(select inside)
+viB					{select inside}
+gv					re-select visual area
+v:le 5				indent selection
+VG					select from cursor down
+ggVG				select all
+:%s/x/y/g			replace x with y filewide
+
+--MACROS--
+qx					to record to x
+q					stop recording
+@x					execute x
+
+--FILES--
+:e file				open file
+:changes			show changes
+
+--PLUGIN--
+:PlugInstall		Install plugins in init.vim

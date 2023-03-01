@@ -1,0 +1,45 @@
+#Program list for sway
+
+
+#system control and utilities
+brightnessctl
+pipewire
+wireplumber
+wlroots
+sway
+swaybg
+wofi
+waybar
+neovim
+sxiv
+sudo
+grim #screenshot
+slurp #selection area for screenshot
+btop
+
+#browser
+brave
+
+#terminal
+alacritty
+
+#reference
+man-db
+man-pages
+
+#fonts
+ttf-jetbrains-mono
+ttf-font-awesome
+
+
+#Add the following symbolic links under ~/.config
+
+ln -s -t . ~/.config/swaydot/alacritty
+ln -s -t . ~/.config/swaydot/aliasrc
+ln -s -t . ~/.config/swaydot/dunst
+ln -s -t . ~/.config/swaydot/fonts
+ln -s -t . ~/.config/swaydot/pipewire
+ln -s -t . ~/.config/swaydot/shell
+ln -s -t . ~/.config/swaydot/sway
+ln -s -t . ~/.config/swaydot/wallpaper
+ln -s -t . ~/.config/swaydot/waybar

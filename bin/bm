@@ -1,0 +1,3 @@
+#!/bin/sh
+
+cat < /home/slappy/.config/private/bookmarks | urlfltr| fzf --multi | xargs -r $BROWSER

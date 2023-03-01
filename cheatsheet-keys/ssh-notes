@@ -1,0 +1,38 @@
+#### SSH NOTES ####
+
+## Generate ssh keys - will generate two (id_rsa and id_rsa.pub) unless specified
+ssh-keygen
+
+## General ssh format is
+ssh user@host (host can be IP or domain name)
+
+## Secure copy via SSH. Note I specified port 1803 with capital P
+scp -P 1803 somefile user@archbox:/home/slappy
+
+## Remove a cached key on a local machine/client
+## This happens if known_hosts has ever connected to same domain name
+## with a different address. Warning that shows is:
+## "Warning: the ECDSA host key for 'myserver' differs from the key for the
+## IP address '192.168.2.3'"
+
+ssh-keygen -R 88.36.654.23 (or replace the IP with domain name munos.xyz)
+ssh-copy-id
+
+
+SSH KEYS (public key authentication)
+
+1. Generate unique keys for user account
+ssh-keygen -t rsa (will create a file in home directory under hidden directory called .ssh.  The file will be called id_rsa
+	id_rsa (private key) id_rsa.pub (public key)
+2. Add public key to SSH server
+ssh-copy-id root@server1
+3. Make sure private key is in memory so it doesn't prompt for name and password
+ssh-agent
+ssh-add
+ssh-add -l (to check and make sure it was added.
+4. Set up SSH server to allow public key authentication instead of password
+vi /etc/ssh/sshd_config
+go to password authentication section and change to no
+5. service sshd restart
+6. start ssh session
+ssh root@server1 (it will ask for passphrase for key and that's it)

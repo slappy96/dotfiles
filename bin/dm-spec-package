@@ -1,0 +1,19 @@
+#!/bin/sh
+
+### Unfinished script to use as a dmenu selection ###
+
+## Ideas ##
+
+# list packages all
+# list packages explicitly installed and sort unique
+# list package groups (already done below)
+# output packages installed as a text file for use
+
+
+case "$(printf "all\nexplicitly\ngroups_installed\nEnter a Specific Package" | dmenu -i -c -l 3 -p "Pick a package request: ")" in
+        all) setsid -f $TERMINAL sudo pacman -Q |less ;;
+        explicitly) sudo pacman -Qett | less ;;
+        groups_installed) sudo pacman -Qiet |grep Groups |sed '/None/d' |awk '{ print $3 }'|sort -u ;;
+        "Enter a Specific Package") sudo pacman -Qett | less ;;
+
+e

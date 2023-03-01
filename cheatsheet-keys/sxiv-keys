@@ -1,0 +1,15 @@
+## SXIV ##
+ctrl x			command mode
+w			wallpaper
+-			zoom out
+shift +		zoom in
+=			fill screen
+c			copy file to dest
+m			move file to dest
+r			rotate +90
+R			rotate -90
+f			flop
+y			copy to clipboard
+Y			copy to clipboard (Notify-send)
+d			delete file
+g			open file in gimp

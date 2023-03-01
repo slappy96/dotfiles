@@ -1,0 +1,27 @@
+FIND Command examples
+
+find <path> <search criteria> <action>
+find /home -name grub.conf
+find . -type f -name abc.txt (. is the current directory/f is file/d for directory)
+find . -type f -perm 0777 -print (to find based on permissions)
+find / -type -f -perm 0777 -exec chmod 755{} \; (this finds files with permission 777 and changes to 755)
+find / -size +10M (find all files greater than 10MB)
+find . -size -1M (find all files less than 1MB)
+find / -size +1M -size -3M (find all files greater than 1MB and less than 3MB)
+find . -type f -perm
+find . mtime +1 (all files modified within 1 day
+find . mtime -1 (all files modified 1 day ago)
+find . mmin -1 (all files modified within a minute ago)
+find . -maxdepth 1 -name abc.txt (only 1 deep recursively)
+find . -type f -perm /u=s (to find any files with sticky bit)
+find . -type f -perm /g=s (to find groups with sticky bit)
+find . -type f -perm 0777 -exec chmod 755 {} \;
+find / -user jmunos -name abc.txt (find files based on user)
+find . -type f -not -name "*.html" (very helpful to find files that are not something--like in a folder full of images)
+find . -name "*.txt" -exec grep -I "EARTH" {} \; (this will find all txt files in the current directory and search them for the word EARTH)
+find / -size +1G -mtime +300
+find /etc -type d  (finds all the directories in /etc --with permission errors)
+find /etc -type d 2>/dev/null (finds all the directories in /etc and sends error to null)
+find /etc -maxdepth 1 -type d -perm -g+s (finds all directories in /etc depth=1 with GUID permissions)
+find / ! \( -path /mnt -prune \) -size +1G  ## exclude certain paths from find search
+find / ! \( -path /mnt -prune \) ! \( -path /proc -prune \) -size +1G  ## exclude multiple paths from find search

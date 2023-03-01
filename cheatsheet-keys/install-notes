@@ -1,0 +1,18 @@
+picom -- use yay -S picom-ibhagwan-git
+
+
+## zsh-git-prompt
+need to git clone in the zsh folder for zsh-git-prompt functionality
+if you don't want to use it, comment out in .zshrc
+
+
+
+
+
+
+
+
+
+
+## bin executables
+symlink .config/bin to .local/bin

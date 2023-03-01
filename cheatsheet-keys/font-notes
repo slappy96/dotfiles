@@ -1,0 +1,12 @@
+### FONTS NOTES ###
+
+fc-list  			# will show all fonts on the system
+fc-list |grep Hack		# will show specifics about Hack
+				  and you can get the name here
+/usr/share/fonts		# location where fonts are
+fc-cache			# update the fontconfig cache which
+				  some programs require as they look
+				  in fontconfig when they start
+				  i.e. GIMP and LIBREOFFICE
+
+## if you download a font, put it in /usr/share/fonts

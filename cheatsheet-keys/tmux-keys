@@ -1,0 +1,37 @@
+## TMUX ##
+ctrl space			prefix
+
+prefix u            "Main"  window
+prefix i            "Vim"   window
+prefix o            "Sys"   window
+prefix p            "Cmus"  window
+
+# Navigate
+alt space           next window
+
+# PANES
+prefix "            split horizontal
+prefix %            split vertical
+ctrl h              left pane
+ctrl l              right pane
+
+prefix n            rename  window
+
+tmux a			    attach to last session
+
+
+
+tmux rename-window newname
+tmux list-sessions
+tmux list-windows
+tmux kill-session -t hello                          #kill session named hello
+tmux kill-server                                    #kill server and every session
+prefix s		list sessions
+prefix c		open new window
+
+# RESURRECT
+prefix ctrl-s	save (tmux-resurrect)
+prefix ctrl-r	restore (tmux-resurrect)
+
+# PANES
+prefix |        split horizontal
