@@ -5,13 +5,16 @@
 #xrandr --output "$screen" --auto --scale 1.0x1.0
 #xrandr --output "$screen" --mode 1920x1080 --scale 1.0x1.0
 
-intern=eDP1
-extern=DP1
+#intern=eDP1
+#extern=DP1
 
-if xrandr | grep "$extern disconnected"; then
-   xrandr --output "$extern" --off --output "$intern" --auto
-   xwallpaper --stretch ~/.config/bg.jpg
-else
-   xrandr --output "$intern" --off --output "$extern" --auto
-   xwallpaper --stretch ~/.config/bg.jpg
-fi
+#if xrandr | grep "$extern disconnected"; then
+#   xrandr --output "$extern" --off --output "$intern" --auto
+#   xwallpaper --stretch ~/.config/bg.jpg
+#else
+#   xrandr --output "$intern" --off --output "$extern" --auto
+#   xwallpaper --stretch ~/.config/bg.jpg
+#fi
+
+#output "*" bg /home/slappy/.config/background/bg.jpg fill
+#then restart sway with super+shift+c

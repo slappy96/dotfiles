@@ -47,7 +47,7 @@ gqG					format file with column width (gg first)
 :h visual-operators (vim help)
 v					visual character
 shift-v				visual lines
-ctrl-v				visual block
+ctrl-v				visual block (shift i to insert)
 u					lower-case
 U					upper-case
 >					indent

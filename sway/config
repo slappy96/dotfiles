@@ -21,7 +21,7 @@ set $menu exec wofi --show drun
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
-output "*" bg /home/slappy/.config/background/hydrometry-iii.jpg fill
+output "*" bg /home/slappy/.config/background/bg.jpg fill
 #
 # Example configuration:
 #
