@@ -1,0 +1,4 @@
+#!/bin/sh
+
+PATH=/usr/bin:/home/slappy/.config/bin
+alacritty -e sudo pacman -Syu

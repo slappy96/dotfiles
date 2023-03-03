@@ -1,0 +1,4 @@
+#!/bin/sh
+
+PATH=/usr/bin:/home/slappy/.config/bin
+alacritty -e nvim ~/.config/cheatsheet-keys/vim-keys
