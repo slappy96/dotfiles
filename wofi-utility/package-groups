@@ -3,4 +3,4 @@
 PATH=/usr/bin:/home/slappy/.config/bin
 PKGGRP="$(pacman -Qiet | grep Groups | sed '/None/d' | awk '{ print $3 }' | sort -ui)"
 
-alacritty -e sudo $PKGGRP
+alacritty --hold -e sudo "$PKGGRP"

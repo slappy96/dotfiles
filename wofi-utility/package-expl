@@ -1,4 +1,6 @@
 #!/bin/sh
 
 PATH=/usr/bin:/home/slappy/.config/bin
-alacritty -e sudo pacman -Qett
+PKGEXPL="$(pacman -Qett)"
+
+alacritty --hold -e sudo "$PKGEXPL"

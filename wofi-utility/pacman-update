@@ -2,3 +2,4 @@
 
 PATH=/usr/bin:/home/slappy/.config/bin
 alacritty -e sudo pacman -Syu
+notify-send "Packages up-to-date"
