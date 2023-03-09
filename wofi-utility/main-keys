@@ -1,0 +1,5 @@
+#!/bin/sh
+
+PATH=/usr/bin:/home/slappy/.config/bin
+
+alacritty --hold -e nvim ~/.config/cheatsheet-keys/main-keys

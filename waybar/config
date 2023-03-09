@@ -9,21 +9,22 @@
     "modules-center": ["sway/window"],
     "modules-right": ["cpu" , "pulseaudio", "network" , "memory" , "battery", "clock"],
     // Modules configuration
-    // "sway/workspaces": {
+     "sway/workspaces": {
     //     "disable-scroll": true,
     //     "all-outputs": true,
-    //     "format": "{name}: {icon}",
-    //     "format-icons": {
-    //         "1": "",
-    //         "2": "",
-    //         "3": "",
-    //         "4": "",
-    //         "5": "",
+         "format": "{name}: {icon}",
+         "format": "{icon}",
+         "format-icons": {
+             "1": "",
+             "2": "",
+             "3": " ",
+             "4": "",
+    //
     //         "urgent": "",
     //         "focused": "",
     //         "default": ""
-    //     }
-    // },
+         }
+     },
     "keyboard-state": {
         "numlock": true,
         "capslock": true,

@@ -1,0 +1,14 @@
+super+Shift+c               Reload Sway
+super+b                     Bluetooth
+super+u                     Utility Menu
+super+w                     Browser
+super+q                     Quit (active window)
+super+d                     Wofi program launcher
+super+v                     Virt Manager
+super+f                     Fullscreen
+super+e                     Toggle split layout
+
+super+PrtScr                Screenshot
+
+
+ctrl+Shift+space            vi-mode toggle Alacritty

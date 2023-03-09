@@ -1,0 +1,6 @@
+iwctl device list
+iwctl station <device> get-networks
+iwctl station <device> connect <SSID>
+
+## to disconnect
+iwctl station <device> disconnect

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+bose_mac="C8:7B:23:4F:C1:2D"
+
+systemctl start bluetooth.service
+bluetoothctl power on
+bluetoothctl connect $bose_mac

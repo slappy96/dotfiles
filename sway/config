@@ -85,6 +85,11 @@ input type:keyboard {
     # mouse button for dragging.
     floating_modifier $mod normal
 
+    # Take a screenshot
+    bindsym $mod+Print exec grim -t jpeg -g "$(slurp)" ~/$(date +%Y-%m-%d_%H-%m-%s).jpg
+    # Bluetooth script
+    bindsym $mod+b exec alacritty --hold -e ~/.config/bin/blue-start
+
     # Reload the configuration file
     bindsym $mod+Shift+c reload
 
@@ -161,21 +166,21 @@ input type:keyboard {
     #bindsym $mod+v splitv
 
     # Switch the current container between different layout styles
-    bindsym $mod+s layout stacking
-    bindsym $mod+Shift+w layout tabbed
+   # bindsym $mod+s layout stacking
+   # bindsym $mod+Shift+w layout tabbed
     bindsym $mod+e layout toggle split
 
     # Make the current focus fullscreen
     bindsym $mod+f fullscreen
 
     # Toggle the current focus between tiling and floating mode
-    bindsym $mod+Shift+space floating toggle
+   # bindsym $mod+Shift+space floating toggle
 
     # Swap focus between the tiling area and the floating area
-    bindsym $mod+space focus mode_toggle
+   # bindsym $mod+space focus mode_toggle
 
     # Move focus to the parent container
-    bindsym $mod+a focus parent
+#    bindsym $mod+a focus parent
 #
 # Scratchpad:
 #
